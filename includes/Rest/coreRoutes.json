@@ -1,0 +1,40 @@
+[
+	{
+		"path": "/v1/page/{title}/history",
+		"class": "MediaWiki\\Rest\\Handler\\PageHistoryHandler",
+		"services": [
+			"RevisionStore",
+			"NameTableStoreFactory",
+			"PermissionManager",
+			"DBLoadBalancer"
+		]
+	},
+	{
+		"path": "/v1/page/{title}/history/counts/{type}",
+		"class": "MediaWiki\\Rest\\Handler\\PageHistoryCountHandler",
+		"services": [
+			"RevisionStore",
+			"NameTableStoreFactory",
+			"PermissionManager",
+			"DBLoadBalancer",
+			"MainWANObjectCache"
+		]
+	},
+	{
+		"path": "/v1/revision/{from}/compare/{to}",
+		"class": "MediaWiki\\Rest\\Handler\\CompareHandler",
+		"services": [
+			"RevisionLookup",
+			"PermissionManager",
+			"Parser"
+		]
+	},
+	{
+		"path": "/v1/revision/{id}/bare",
+		"class": "MediaWiki\\Rest\\Handler\\RevisionHandler",
+		"services": [
+			"RevisionLookup",
+			"PermissionManager"
+		]
+	}
+]
