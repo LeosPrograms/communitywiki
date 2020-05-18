@@ -15,7 +15,6 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	exit;
 }
 
-wfLoadSkin( 'MinervaNeue' );
 
 ## Uncomment this to disable output compression
 # $wgDisableOutputCompression = true;
@@ -120,4 +119,4 @@ $wgDefaultSkin = "MinervaNeue";
 
 # End of automatically generated settings.
 # Add more configuration options below.
-
+wfLoadSkin( 'MinervaNeue' );
