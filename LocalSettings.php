@@ -15,6 +15,7 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	exit;
 }
 
+wfLoadSkin( 'MinervaNeue' );
 
 ## Uncomment this to disable output compression
 # $wgDisableOutputCompression = true;
