@@ -123,3 +123,5 @@ $wgDefaultSkin = "vector";
 
 wfLoadExtension( 'MobileFrontend' );
 wfLoadSkin( 'MinervaNeue' );
+$wgMFAutodetectMobileView = true;
+$wgMFDefaultSkinClass= "SkinMinerva";
