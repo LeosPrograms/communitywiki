@@ -118,8 +118,8 @@ $wgDiff3 = "/usr/bin/diff3";
 
 $wgStylePath        = "$wgScriptPath/skins";
 
-wfLoadExtension( 'MobileFrontend' );
 wfLoadSkin( 'MinervaNeue' );
+wfLoadExtension( 'MobileFrontend' );
 
 
 # End of automatically generated settings.
