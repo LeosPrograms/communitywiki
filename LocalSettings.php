@@ -19,7 +19,7 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 ## Uncomment this to disable output compression
 # $wgDisableOutputCompression = true;
 
-$wgSitename = "NGL Communities";
+$wgSitename = "NGL Communities Wiki";
 $wgMetaNamespace = "NGL_Communities";
 
 ## The URL base path to the directory containing the wiki;
@@ -116,11 +116,11 @@ $wgDiff3 = "/usr/bin/diff3";
 ## Default skin: you can change the default skin. Use the internal symbolic
 ## names, ie 'vector', 'monobook':
 
-$wgDefaultSkin = "Timeless";
+$wgDefaultSkin = "Example";
 
 # End of automatically generated settings.
 # Add more configuration options below.
 
 wfLoadExtension( 'MobileFrontend' );
-wfLoadSkin( 'Timeless' );
+wfLoadSkin( 'Example' );
 $wgMFAutodetectMobileView = true;
