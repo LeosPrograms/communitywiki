@@ -122,5 +122,5 @@ $wgDefaultSkin = "Timeless";
 # Add more configuration options below.
 
 wfLoadExtension( 'MobileFrontend' );
-wfLoadSkin( 'minervaneue' );
+wfLoadSkin( 'Amethyst' );
 $wgMFAutodetectMobileView = true;
