@@ -22,6 +22,7 @@ sftp-config.json
 /docs
 /node_modules
 /vendor
+/tests/phan/issues
 
 # Operating systems
 ## Mac OS X
@@ -39,8 +40,3 @@ Thumbs.db
 /tags
 /.htaccess
 /.htpasswd
-.eslintcache
-
-# storybook
-/.storybook/resolve-less-imports/
-/.storybook/integration.less
