@@ -1023,7 +1023,7 @@ body:not( :-moz-handler-blocked ) .oo-ui-fieldsetLayout {
 .oo-ui-popupWidget-anchored-top .oo-ui-popupWidget-anchor:before {
   bottom: -7px;
   left: -6px;
-  border-bottom-color: #a8a8a8;
+  /* border-bottom-color: #a8a8a8; */
   border-width: 7px;
 }
 .oo-ui-popupWidget-anchored-top .oo-ui-popupWidget-anchor:after {

@@ -121,6 +121,6 @@ $wgDefaultSkin = "Timeless";
 # End of automatically generated settings.
 # Add more configuration options below.
 
-wfLoadExtension( 'MobileFrontend' );
+// wfLoadExtension( 'MobileFrontend' );
 wfLoadSkin( 'Timeless' );
 $wgMFAutodetectMobileView = true;
