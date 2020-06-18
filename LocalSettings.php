@@ -116,7 +116,7 @@ $wgDiff3 = "/usr/bin/diff3";
 ## Default skin: you can change the default skin. Use the internal symbolic
 ## names, ie 'vector', 'monobook':
 
-$wgDefaultSkin = "Timeless";
+$wgDefaultSkin = "Amethyst";
 
 # End of automatically generated settings.
 # Add more configuration options below.
