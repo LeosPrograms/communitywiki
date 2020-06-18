@@ -116,11 +116,11 @@ $wgDiff3 = "/usr/bin/diff3";
 ## Default skin: you can change the default skin. Use the internal symbolic
 ## names, ie 'vector', 'monobook':
 
-$wgDefaultSkin = "MinervaNeue";
+$wgDefaultSkin = "Timeless";
 
 # End of automatically generated settings.
 # Add more configuration options below.
 
 wfLoadExtension( 'MobileFrontend' );
-wfLoadSkin( 'MinervaNeue' );
+wfLoadSkin( 'minervaneue' );
 $wgMFAutodetectMobileView = true;
