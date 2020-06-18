@@ -1,5 +1,10 @@
 @import 'variables.less';
-@footerColor: #eee;
+@wmui-color-base0: #000;
+
+@color-base: @wmui-color-base0;
+
+@border-color-base: @wmui-color-base0;
+@border-color-footer: #eee;
 
 // We have to render the wordmark image before the print dialog is invoked, otherwise the image
 // won't render in the printed file. Use a little hack to render the image outside the viewport
@@ -35,10 +40,10 @@
 		font-family: @font-family-serif;
 	}
 
-	.printfooter,
-	#footer,
 	// Tables, thumbs and lists are sans-serif in print mode (unlike screen mode) because these will render
 	// more legibly on print media in a smaller font sizes
+	.printfooter,
+	#footer,
 	.thumb,
 	table,
 	ol,
@@ -48,7 +53,7 @@
 	h4,
 	h5,
 	h6 {
-		font-family: @font-family-sans-serif;
+		font-family: @font-family-sans;
 	}
 
 	// Images, such as formulas, render best in serif. Math fallback images, for example, have an
@@ -58,7 +63,7 @@
 	// 		src="https://wikimedia.org/api/rest_v1/media/math/render/svg/d03b01348b751e6f4eaff085b3effa9542e2935d"
 	// 		class="mwe-math-fallback-image-inline"
 	// 		aria-hidden="true"
-	// 		style="vertical-align: -2.171ex; width:11.418ex; height:5.676ex;"
+	// 		style="vertical-align: -2.171ex; width: 11.418ex; height: 5.676ex;"
 	// 		alt="r_{s}={\frac {2GM}{c^{2}}}">
 	img {
 		font-family: @font-family-serif;
@@ -89,7 +94,7 @@
 	h2 {
 		// To avoid the bottom border of section headings with floated elements
 		overflow: hidden;
-		border-bottom: 2px solid @pureBlack;
+		border-bottom: 2px solid @border-color-base;
 	}
 
 	h3,
@@ -139,17 +144,16 @@
 		// between the surrounding elements, making the reading experience less
 		// enjoyable. If there is not enough space the following code will push
 		// the paragraph contents until after the floating element(s).
-		@paragraphMinWidth: 120pt;
 		&:before {
 			content: '';
 			display: block;
+			width: 120pt;
 			overflow: hidden;
-			width: @paragraphMinWidth;
 		}
 	}
 
 	blockquote {
-		border-left: 2px solid @pureBlack;
+		border-left: 2px solid @border-color-base;
 		padding-left: 20px;
 	}
 
@@ -183,7 +187,6 @@
 		}
 
 		> ul {
-
 			> li {
 				margin-bottom: 4px;
 				font-weight: bold;
@@ -214,7 +217,7 @@
 
 	.printfooter {
 		margin-top: 10px;
-		border-top: 3px solid @pureBlack;
+		border-top: 3px solid @border-color-base;
 		padding-top: 10px;
 		font-size: 10pt;
 		clear: both;
@@ -222,7 +225,7 @@
 
 	#footer {
 		margin-top: 12px;
-		border-top: 1px solid @footerColor;
+		border-top: 1px solid @border-color-footer;
 		padding-top: 5px;
 	}
 
@@ -246,7 +249,7 @@
 
 	// Last updated as primary info.
 	#footer-info-lastmod {
-		color: @pureBlack;
+		color: @color-base;
 		font-size: 12pt;
 		font-weight: bold;
 	}

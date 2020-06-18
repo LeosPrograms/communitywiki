@@ -37,6 +37,7 @@ class SkinVector extends SkinTemplate {
 	private $responsiveMode = false;
 
 	public function __construct() {
+		parent::__construct( ...func_get_args() );
 		$this->vectorConfig = \MediaWiki\MediaWikiServices::getInstance()->getConfigFactory()
 			->makeConfig( 'vector' );
 	}
@@ -77,7 +78,7 @@ class SkinVector extends SkinTemplate {
 	 * Loads skin and user CSS files.
 	 * @param OutputPage $out
 	 */
-	function setupSkinUserCss( OutputPage $out ) {
+	public function setupSkinUserCss( OutputPage $out ) {
 		parent::setupSkinUserCss( $out );
 
 		$out->addModuleStyles( [
