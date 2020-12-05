@@ -121,7 +121,13 @@ $wgDefaultSkin = "Vector";
 # End of automatically generated settings.
 # Add more configuration options below.
 
+wfLoadExtension( 'MobileDetect' );
 wfLoadExtension( 'MobileApp' );
+wfLoadExtension( 'MobileFrontend' );
 wfLoadExtension( 'VisualEditor' );
 wfLoadSkin( 'Vector' );
 $wgMFAutodetectMobileView = true;
+
+error_reporting( -1 );
+ini_set( 'display_errors', 1 ); 
+$wgShowExceptionDetails = true;
