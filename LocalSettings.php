@@ -122,7 +122,7 @@ $wgDefaultSkin = "Vector";
 # Add more configuration options below.
 
 wfLoadExtension( 'MobileApp' );
-wfLoadExtension( 'MobileFrontend' );
+// wfLoadExtension( 'MobileFrontend' );
 wfLoadExtension( 'VisualEditor' );
 wfLoadSkin( 'Vector' );
 $wgMFAutodetectMobileView = true;
