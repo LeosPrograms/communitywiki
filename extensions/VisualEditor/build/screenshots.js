@@ -6,9 +6,9 @@ const accessKey = process.env.SAUCE_ONDEMAND_ACCESS_KEY,
 	Jimp = require( 'jimp' ),
 	username = process.env.SAUCE_ONDEMAND_USERNAME,
 	webdriver = require( 'selenium-webdriver' ),
-	TIMEOUT = 40 * 1000;
+	TIMEOUT = 10 * 1000;
 
-function createScreenshotEnvironment( test, beforeEach ) {
+function createScreenshotEnvironment( test ) {
 	let clientSize, driver;
 
 	test.beforeEach( function () {
@@ -19,6 +19,7 @@ function createScreenshotEnvironment( test, beforeEach ) {
 			driver = new webdriver.Builder().withCapabilities( {
 				browserName: process.env.BROWSER,
 				platform: process.env.PLATFORM,
+				screenResolution: '1280x1024',
 				username: username,
 				accessKey: accessKey
 			} ).usingServer( 'http://' + username + ':' + accessKey +
@@ -31,7 +32,10 @@ function createScreenshotEnvironment( test, beforeEach ) {
 		driver.manage().timeouts().setScriptTimeout( TIMEOUT );
 		driver.manage().window().setSize( 1200, 1000 );
 
-		driver.get( 'https://en.wikipedia.org/wiki/Help:Sample_page?veaction=edit&uselang=' + lang );
+		driver.get( 'https://en.wikipedia.org/wiki/Help:Sample_page?veaction=edit&vehidebetadialog=1&uselang=' + lang )
+			.then( null, function ( e ) {
+				console.error( e.message );
+			} );
 		driver.wait(
 			driver.executeAsyncScript(
 				require( './screenshots-client/utils.js' )
@@ -40,24 +44,17 @@ function createScreenshotEnvironment( test, beforeEach ) {
 			}, function ( e ) {
 				// Log error (timeout)
 				console.error( e.message );
+				// Setup failed, set clientSize to null so no screenshots are generated
+				clientSize = null;
 			} )
 		);
-		if ( beforeEach ) {
-			driver.manage().timeouts().setScriptTimeout( TIMEOUT );
-			driver.wait(
-				driver.executeAsyncScript( beforeEach ).then(
-					function () {},
-					function ( e ) {
-						// Log error (timeout)
-						console.error( e.message );
-					}
-				)
-			);
-		}
 	} );
 
 	test.afterEach( function () {
-		driver.quit();
+		driver.quit()
+			.then( null, function ( e ) {
+				console.error( e.message );
+			} );
 	} );
 
 	function cropScreenshot( filename, imageBuffer, rect, padding ) {
@@ -71,13 +68,23 @@ function createScreenshotEnvironment( test, beforeEach ) {
 		const bottom = Math.min( clientSize.height, rect.top + rect.height + padding );
 
 		return Jimp.read( imageBuffer ).then( function ( jimpImage ) {
-			jimpImage
-				.crop( left, top, right - left, bottom - top )
-				.write( filename );
+			try {
+				jimpImage
+					.crop( left, top, right - left, bottom - top )
+					.write( filename );
+			} catch ( e ) {
+				// Log error (memory?)
+				console.error( e );
+			}
 		} );
 	}
 
 	function runScreenshotTest( name, lang, clientScript, padding ) {
+		if ( !clientSize ) {
+			// Setup failed, don't generated a broken screenshot
+			return;
+		}
+
 		const filename = './screenshots/' + name + '-' + lang + '.png';
 
 		driver.manage().timeouts().setScriptTimeout( TIMEOUT );

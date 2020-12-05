@@ -36,14 +36,39 @@ class VisualEditorHooks {
 	/**
 	 * Initialise the 'VisualEditorAvailableNamespaces' setting, and add content
 	 * namespaces to it. This will run after LocalSettings.php is processed.
+	 * Also ensure Parsoid extension is loaded when necessary.
 	 */
 	public static function onRegistration() {
-		global $wgVisualEditorAvailableNamespaces, $wgContentNamespaces;
+		global $wgVisualEditorAvailableNamespaces, $wgContentNamespaces,
+			$wgVisualEditorParsoidAutoConfig, $wgVirtualRestConfig, $wgRestAPIAdditionalRouteFiles;
+		// phpcs:ignore MediaWiki.NamingConventions.ValidGlobalName.allowedPrefix
+		global $IP;
 
 		foreach ( $wgContentNamespaces as $contentNamespace ) {
 			if ( !isset( $wgVisualEditorAvailableNamespaces[$contentNamespace] ) ) {
 				$wgVisualEditorAvailableNamespaces[$contentNamespace] = true;
 			}
+		}
+
+		// For the 1.35 LTS, Parsoid is loaded from includes/VEParsoid to provide a
+		// "zero configuration" VisualEditor experience. In Wikimedia production, we
+		// have $wgVisualEditorParsoidAutoConfig off (and $wgVirtualRestConfig set to
+		// point to a separate cluster which has the Parsoid extension installed), so
+		// this code won't be executed.
+		if (
+			$wgVisualEditorParsoidAutoConfig
+			&& !ExtensionRegistry::getInstance()->isLoaded( 'Parsoid' )
+			// Generally manually configuring VRS means that you're running
+			// Parsoid on a different host.  If you need to manually configure
+			// VRS, load the Parsoid extension explicitly.
+			&& !isset( $wgVirtualRestConfig['modules']['parsoid'] )
+			&& !isset( $wgVirtualRestConfig['modules']['restbase'] )
+		) {
+			// Only install these route files if we're auto-configuring and
+			// the parsoid extension isn't loaded, otherwise we'll conflict.
+			$wgRestAPIAdditionalRouteFiles[] = wfRelativePath(
+				__DIR__ . '/VEParsoid/parsoidRoutes.json', $IP
+			);
 		}
 	}
 
@@ -99,18 +124,12 @@ class VisualEditorHooks {
 	}
 
 	/**
-	 * Handler for the DiffViewHeader hook, to add visual diffs code as configured
+	 * Handler for the DifferenceEngineViewHeader hook, to add visual diffs code as configured
 	 *
 	 * @param DifferenceEngine $diff The difference engine
-	 * @param Revision|null $oldRev The old revision
-	 * @param Revision|null $newRev The new revision
 	 * @return void
 	 */
-	public static function onDiffViewHeader(
-		DifferenceEngine $diff,
-		Revision $oldRev = null,
-		Revision $newRev = null
-	) {
+	public static function onDifferenceEngineViewHeader( DifferenceEngine $diff ) {
 		$veConfig = MediaWikiServices::getInstance()->getConfigFactory()
 			->makeConfig( 'visualeditor' );
 		$output = RequestContext::getMain()->getOutput();
@@ -371,6 +390,13 @@ class VisualEditorHooks {
 	public static function getPreferredEditor(
 		User $user, WebRequest $req, $useWikitextInMultiTab = false
 	) {
+		// VisualEditor shouldn't even call this method when it's disabled, but it is a public API for
+		// other extensions (e.g. DiscussionTools), and the editor preferences might have surprising
+		// values if the user has tried VisualEditor in the past and then disabled it. (T257234)
+		if ( !self::enabledForUser( $user ) ) {
+			return 'wikitext';
+		}
+
 		switch ( $user->getOption( 'visualeditor-tabs' ) ) {
 			case 'prefer-ve':
 				return 'visualeditor';
@@ -962,24 +988,25 @@ class VisualEditorHooks {
 		$coreConfig = RequestContext::getMain()->getConfig();
 		$veConfig = MediaWikiServices::getInstance()->getConfigFactory()
 			->makeConfig( 'visualeditor' );
+		$extensionRegistry = ExtensionRegistry::getInstance();
 		$availableNamespaces = ApiVisualEditor::getAvailableNamespaceIds( $veConfig );
 		$availableContentModels = array_filter(
 			array_merge(
-				ExtensionRegistry::getInstance()->getAttribute( 'VisualEditorAvailableContentModels' ),
+				$extensionRegistry->getAttribute( 'VisualEditorAvailableContentModels' ),
 				$veConfig->get( 'VisualEditorAvailableContentModels' )
 			)
 		);
 
 		$vars['wgVisualEditorConfig'] = [
-			'usePageImages' => ExtensionRegistry::getInstance()->isLoaded( 'PageImages' ),
-			'usePageDescriptions' => defined( 'WBC_VERSION' ),
+			'usePageImages' => $extensionRegistry->isLoaded( 'PageImages' ),
+			'usePageDescriptions' => $extensionRegistry->isLoaded( 'WikibaseClient' ),
 			'disableForAnons' => $veConfig->get( 'VisualEditorDisableForAnons' ),
 			'preloadModules' => $veConfig->get( 'VisualEditorPreloadModules' ),
 			'preferenceModules' => $veConfig->get( 'VisualEditorPreferenceModules' ),
 			'namespaces' => $availableNamespaces,
 			'contentModels' => $availableContentModels,
 			'pluginModules' => array_merge(
-				ExtensionRegistry::getInstance()->getAttribute( 'VisualEditorPluginModules' ),
+				$extensionRegistry->getAttribute( 'VisualEditorPluginModules' ),
 				// @todo deprecate the global setting
 				$veConfig->get( 'VisualEditorPluginModules' )
 			),

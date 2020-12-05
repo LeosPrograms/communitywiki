@@ -306,11 +306,6 @@ ve.init.mw.DesktopArticleTarget.prototype.setupToolbarSaveButton = function () {
  * Needs to be done on each activation because localNoticeMessages is cleared in clearState.
  */
 ve.init.mw.DesktopArticleTarget.prototype.setupLocalNoticeMessages = function () {
-	if ( mw.config.get( 'wgTranslatePageTranslation' ) === 'source' ) {
-		// Warn users if they're on a source of the Page Translation feature
-		this.localNoticeMessages.push( 'visualeditor-pagetranslationwarning' );
-	}
-
 	if ( !(
 		'vesupported' in this.currentUri.query ||
 		$.client.test( this.constructor.static.compatibility.supportedList, null, true )
@@ -897,7 +892,7 @@ ve.init.mw.DesktopArticleTarget.prototype.onViewTabClick = function ( e ) {
  * @inheritdoc
  */
 ve.init.mw.DesktopArticleTarget.prototype.saveComplete = function ( data ) {
-	var newUrlParams, watchChecked, watch,
+	var newUrlParams, watch,
 		target = this;
 
 	// Parent method
@@ -920,10 +915,12 @@ ve.init.mw.DesktopArticleTarget.prototype.saveComplete = function ( data ) {
 		// User logged in if module loaded.
 		if ( mw.loader.getState( 'mediawiki.page.watch.ajax' ) === 'ready' ) {
 			watch = require( 'mediawiki.page.watch.ajax' );
-			watchChecked = this.checkboxesByName.wpWatchthis && this.checkboxesByName.wpWatchthis.isSelected();
+
 			watch.updateWatchLink(
 				$( '#ca-watch a, #ca-unwatch a' ),
-				watchChecked ? 'unwatch' : 'watch'
+				data.watched ? 'unwatch' : 'watch',
+				'idle',
+				data.watchlistexpiry
 			);
 		}
 
@@ -1262,7 +1259,7 @@ ve.init.mw.DesktopArticleTarget.prototype.restorePage = function () {
 			// Translate into a fragment for the new URI:
 			// This should be after replacePageContent if this is post-save, so we can just look
 			// at the headers on the page.
-			fragment = this.getSectionFragmentFromPage();
+			fragment = this.getSectionFragmentFromPage( this.$editableContent );
 			if ( fragment ) {
 				uri.fragment = fragment;
 				this.viewUri.fragment = fragment;

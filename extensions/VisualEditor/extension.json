@@ -28,6 +28,12 @@
 	},
 	"callback": "VisualEditorHooks::onRegistration",
 	"config": {
+		"VisualEditorParsoidAutoConfig": {
+			"value": true
+		},
+		"VisualEditorParsoidSettings": {
+			"value": []
+		},
 		"VisualEditorPluginModules": {
 			"value": []
 		},
@@ -81,7 +87,7 @@
 			"value": false
 		},
 		"VisualEditorEnableVisualSectionEditing": {
-			"value": false
+			"value": "mobile"
 		},
 		"VisualEditorUseSingleEditTab": {
 			"value": false
@@ -184,7 +190,7 @@
 	"Hooks": {
 		"BeforePageDisplay": "VisualEditorHooks::onBeforePageDisplay",
 		"SkinEditSectionLinks": "VisualEditorHooks::onSkinEditSectionLinks",
-		"DiffViewHeader": "VisualEditorHooks::onDiffViewHeader",
+		"DifferenceEngineViewHeader": "VisualEditorHooks::onDifferenceEngineViewHeader",
 		"GetBetaFeaturePreferences": "VisualEditorHooks::onGetBetaPreferences",
 		"GetPreferences": "VisualEditorHooks::onGetPreferences",
 		"PreferencesFormPreSave": "VisualEditorHooks::onPreferencesFormPreSave",
@@ -831,7 +837,6 @@
 				"visualeditor-mweditmodesource-progress",
 				"visualeditor-mweditmodeve-progress",
 				"visualeditor-pagemenu-tooltip",
-				"visualeditor-pagetranslationwarning",
 				"visualeditor-recreate",
 				"visualeditor-redirect-description",
 				"visualeditor-loaderror-revidconflict",
@@ -1390,6 +1395,8 @@
 				"visualeditor-table-contextitem-properties",
 				"visualeditor-table-contextitem-selectionmode-cells",
 				"visualeditor-table-contextitem-selectionmode-contents",
+				"visualeditor-table-context-col",
+				"visualeditor-table-context-row",
 				"visualeditor-table-delete-col",
 				"visualeditor-table-delete-row",
 				"visualeditor-table-format-data",
@@ -2161,6 +2168,7 @@
 				"visualeditor-dialog-transclusion-required-parameter-is-blank",
 				"visualeditor-dialog-transclusion-single-mode",
 				"visualeditor-dialog-transclusion-title",
+				"visualeditor-dialog-transclusion-templates-menu-aria-label",
 				"visualeditor-dialogbutton-template-tooltip",
 				"visualeditor-dialogbutton-transclusion-tooltip",
 				"visualeditor-parameter-input-placeholder",
@@ -2774,7 +2782,7 @@
 		"remoteExtPath": "VisualEditor"
 	},
 	"DefaultUserOptions": {
-		"visualeditor-enable": 0,
+		"visualeditor-enable": 1,
 		"visualeditor-betatempdisable": 0,
 		"visualeditor-newwikitext": 0,
 		"visualeditor-visualdiffpage": 0,
@@ -2789,6 +2797,9 @@
 	"SpecialPages": {
 		"CollabPad": "SpecialCollabPad"
 	},
+	"AutoloadNamespaces": {
+		"VEParsoid\\": "includes/VEParsoid/src"
+	},
 	"AutoloadClasses": {
 		"ApiParsoidTrait": "includes/ApiParsoidTrait.php",
 		"ApiVisualEditor": "includes/ApiVisualEditor.php",
@@ -2798,6 +2809,9 @@
 		"VisualEditorDataModule": "includes/VisualEditorDataModule.php",
 		"VisualEditorDesktopArticleTargetInitModule": "includes/VisualEditorDesktopArticleTargetInitModule.php"
 	},
+	"ServiceWiringFiles": [
+		"includes/VEParsoid/ServiceWiring.php"
+	],
 	"ConfigRegistry": {
 		"visualeditor": "GlobalVarConfig::newInstance"
 	},

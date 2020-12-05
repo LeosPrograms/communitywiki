@@ -9,6 +9,7 @@
  */
 
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\RevisionRecord;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -27,14 +28,14 @@ trait ApiParsoidTrait {
 	/**
 	 * @return LoggerInterface
 	 */
-	protected function getLogger() {
+	protected function getLogger() : LoggerInterface {
 		return $this->logger ?: new NullLogger();
 	}
 
 	/**
 	 * @param LoggerInterface $logger
 	 */
-	protected function setLogger( $logger ) {
+	protected function setLogger( LoggerInterface $logger ) {
 		$this->logger = $logger;
 	}
 
@@ -48,7 +49,8 @@ trait ApiParsoidTrait {
 	 *
 	 * @return VirtualRESTService the VirtualRESTService object to use
 	 */
-	protected function getVRSObject() {
+	protected function getVRSObject() : VirtualRESTService {
+		global $wgVisualEditorParsoidAutoConfig;
 		// the params array to create the service object with
 		$params = [];
 		// the VRS class to use, defaults to Parsoid
@@ -65,6 +67,12 @@ trait ApiParsoidTrait {
 			// there's a global parsoid config, use it next
 			$params = $vrs['modules']['parsoid'];
 			$params['restbaseCompat'] = true;
+		} elseif ( $wgVisualEditorParsoidAutoConfig ) {
+			$params = $vrs['modules']['parsoid'] ?? [];
+			$params['restbaseCompat'] = true;
+			// forward cookies on private wikis
+			$params['forwardCookies'] = !MediaWikiServices::getInstance()
+				->getPermissionManager()->isEveryoneAllowed( 'read' );
 		} else {
 			// No global modules defined, so no way to contact the document server.
 			$this->dieWithError( 'apierror-visualeditor-docserver-unconfigured', 'no_vrs' );
@@ -88,7 +96,7 @@ trait ApiParsoidTrait {
 	 *
 	 * @return VirtualRESTServiceClient
 	 */
-	protected function getVRSClient() {
+	protected function getVRSClient() : VirtualRESTServiceClient {
 		if ( !$this->serviceClient ) {
 			$this->serviceClient = new VirtualRESTServiceClient(
 				MediaWikiServices::getInstance()->getHttpRequestFactory()->createMultiClient() );
@@ -107,7 +115,9 @@ trait ApiParsoidTrait {
 	 * @param array $reqheaders Request headers
 	 * @return array The RESTbase server's response, 'code', 'reason', 'headers' and 'body'
 	 */
-	protected function requestRestbase( Title $title, $method, $path, $params, $reqheaders = [] ) {
+	protected function requestRestbase(
+		Title $title, string $method, string $path, array $params, array $reqheaders = []
+	) : array {
 		$request = [
 			'method' => $method,
 			'url' => '/restbase/local/v1/' . $path
@@ -166,16 +176,77 @@ trait ApiParsoidTrait {
 	}
 
 	/**
+	 * Get the latest revision of a title
+	 *
+	 * @param Title $title Page title
+	 * @return RevisionRecord A revision record
+	 */
+	protected function getLatestRevision( Title $title ) : RevisionRecord {
+		$revisionLookup = MediaWikiServices::getInstance()->getRevisionLookup();
+		$latestRevision = $revisionLookup->getRevisionByTitle( $title );
+		if ( $latestRevision !== null ) {
+			return $latestRevision;
+		}
+		$this->dieWithError( 'apierror-visualeditor-latestnotfound', 'latestnotfound' );
+	}
+
+	/**
+	 * Get a specific revision of a title
+	 *
+	 * If the oldid is ommitted or is 0, the latest revision will be fetched.
+	 *
+	 * If the oldid is invalid, an API error will be reported.
+	 *
+	 * @param Title $title Page title
+	 * @param int|string|null $oldid Optional revision ID.
+	 *  Should be an integer but will validate and convert user input strings.
+	 * @return RevisionRecord A revision record
+	 */
+	protected function getValidRevision( Title $title, $oldid = null ) : RevisionRecord {
+		$revisionLookup = MediaWikiServices::getInstance()->getRevisionLookup();
+		$revision = null;
+		if ( $oldid === null || $oldid === 0 ) {
+			return $this->getLatestRevision( $title );
+		} else {
+			$revisionRecord = $revisionLookup->getRevisionById( $oldid );
+			if ( $revisionRecord ) {
+				return $revisionRecord;
+			}
+		}
+		$this->dieWithError( [ 'apierror-nosuchrevid', $oldid ], 'oldidnotfound' );
+	}
+
+	/**
+	 * Request page HTML from RESTBase
+	 *
+	 * @param RevisionRecord $revision Page revision
+	 * @return array The RESTBase server's response
+	 */
+	protected function requestRestbasePageHtml( RevisionRecord $revision ) : array {
+		$title = Title::newFromLinkTarget( $revision->getPageAsLinkTarget() );
+		return $this->requestRestbase(
+			$title,
+			'GET',
+			'page/html/' . urlencode( $title->getPrefixedDBkey() ) .
+				'/' . $revision->getId() .
+				'?redirect=false&stash=true',
+			[]
+		);
+	}
+
+	/**
 	 * Transform HTML to wikitext via Parsoid through RESTbase.
 	 *
 	 * @param string $path The RESTbase path of the transform endpoint
 	 * @param Title $title The title of the page
 	 * @param array $data An array of the HTML and the 'scrub_wikitext' option
 	 * @param array $parserParams Parsoid parser parameters to pass in
-	 * @param string $etag The ETag to set in the HTTP request header
+	 * @param string|null $etag The ETag to set in the HTTP request header
 	 * @return string Body of the RESTbase server's response
 	 */
-	protected function postData( $path, Title $title, $data, $parserParams, $etag ) {
+	protected function postData(
+		string $path, Title $title, array $data, array $parserParams, ?string $etag
+	) : string {
 		$path .= urlencode( $title->getPrefixedDBkey() );
 		if ( isset( $parserParams['oldid'] ) && $parserParams['oldid'] ) {
 			$path .= '/' . $parserParams['oldid'];
@@ -210,10 +281,12 @@ trait ApiParsoidTrait {
 	 * @param Title $title The title of the page
 	 * @param string $html The HTML of the page to be transformed
 	 * @param array $parserParams Parsoid parser parameters to pass in
-	 * @param string $etag The ETag to set in the HTTP request header
+	 * @param string|null $etag The ETag to set in the HTTP request header
 	 * @return string Body of the RESTbase server's response
 	 */
-	protected function postHTML( Title $title, $html, $parserParams, $etag ) {
+	protected function postHTML(
+		Title $title, string $html, array $parserParams, ?string $etag
+	) : string {
 		return $this->postData(
 			'transform/html/to/wikitext/', $title,
 			[ 'html' => $html, 'scrub_wikitext' => 1 ], $parserParams, $etag
@@ -225,7 +298,7 @@ trait ApiParsoidTrait {
 	 * @param Title $title Title
 	 * @return Language Content language
 	 */
-	public static function getPageLanguage( Title $title ) {
+	public static function getPageLanguage( Title $title ) : Language {
 		if ( $title->isSpecial( 'CollabPad' ) ) {
 			// Use the site language for CollabPad, as getPageLanguage just
 			// returns the interface language for special pages.

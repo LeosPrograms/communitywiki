@@ -188,9 +188,6 @@ class ApiVisualEditorEdit extends ApiBase {
 		$wikitext = $this->postHTML(
 			$title, $html, $parserParams, $params['etag']
 		);
-		if ( $wikitext === false ) {
-			$this->dieWithError( 'apierror-visualeditor-docserver', 'docserver' );
-		}
 		return $wikitext;
 	}
 
@@ -450,6 +447,8 @@ class ApiVisualEditorEdit extends ApiBase {
 					$result['newrevid'] = intval( $saveresult['edit']['newrevid'] );
 				}
 
+				$result['watched'] = $saveresult['edit']['watched'] ?? false;
+				$result['watchlistexpiry'] = $saveresult['edit']['watchlistexpiry'] ?? null;
 				$result['result'] = 'success';
 			}
 		}

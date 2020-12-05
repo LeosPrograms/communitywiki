@@ -11,7 +11,7 @@
 use MediaWiki\Block\DatabaseBlock;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Revision\RevisionStoreRecord;
+use MediaWiki\Revision\RevisionRecord;
 
 class ApiVisualEditor extends ApiBase {
 
@@ -92,7 +92,7 @@ class ApiVisualEditor extends ApiBase {
 				$preloadPage = WikiPage::factory( $preloadTitle );
 			}
 
-			$content = $preloadPage->getContent( Revision::RAW );
+			$content = $preloadPage->getContent( RevisionRecord::RAW );
 			$parserOptions = ParserOptions::newFromUser( $this->getUser() );
 
 			$content = $content->preloadTransform(
@@ -144,26 +144,12 @@ class ApiVisualEditor extends ApiBase {
 
 				// Get information about current revision
 				if ( $title->exists() ) {
-					$revisionLookup = MediaWikiServices::getInstance()->getRevisionLookup();
-					$latestRevision = $revisionLookup->getRevisionByTitle( $title );
-					if ( $latestRevision === null ) {
-						$this->dieWithError( 'apierror-visualeditor-latestnotfound', 'latestnotfound' );
-					}
-					$revision = null;
-					if ( !isset( $parserParams['oldid'] ) || $parserParams['oldid'] === 0 ) {
-						$parserParams['oldid'] = $latestRevision->getId();
-						$revision = $latestRevision;
-					} else {
-						$revision = $revisionLookup->getRevisionById( $parserParams['oldid'] );
-						if ( $revision === null ) {
-							$this->dieWithError( [ 'apierror-nosuchrevid', $parserParams['oldid'] ], 'oldidnotfound' );
-						}
-					}
+					$revision = $this->getValidRevision( $title, $parserParams['oldid'] ?? null );
+					$latestRevision = $this->getLatestRevision( $title );
 
-					$restoring = $revision &&
-						!( $revision instanceof RevisionStoreRecord && $revision->isCurrent() );
+					$restoring = !$revision->isCurrent();
 					$baseTimestamp = $latestRevision->getTimestamp();
-					$oldid = intval( $parserParams['oldid'] );
+					$oldid = $revision->getId();
 
 					// If requested, request HTML from Parsoid/RESTBase
 					if ( $params['paction'] === 'parse' ) {
@@ -187,13 +173,7 @@ class ApiVisualEditor extends ApiBase {
 								$title, $wikitext, false, $oldid, $stash
 							);
 						} else {
-							$response = $this->requestRestbase(
-								$title,
-								'GET',
-								'page/html/' . urlencode( $title->getPrefixedDBkey() ) . '/' . $oldid .
-									'?redirect=false&stash=true',
-								[]
-							);
+							$response = $this->requestRestbasePageHtml( $revision );
 						}
 						$content = $response['body'];
 						$restbaseHeaders = $response['headers'];
@@ -247,15 +227,26 @@ class ApiVisualEditor extends ApiBase {
 						}
 					}
 				} else {
-					$content = '';
-					Hooks::run( 'EditFormPreloadText', [ &$content, &$title ] );
-					// @phan-suppress-next-line PhanSuspiciousValueComparison Known false positive with hooks
-					if ( $content === '' && !empty( $params['preload'] ) ) {
-						$content = $this->getPreloadContent(
-							$params['preload'], $params['preloadparams'], $title
-						);
-						$preloaded = true;
+					if ( isset( $params['wikitext'] ) ) {
+						$content = $params['wikitext'];
+						if ( $params['pst'] ) {
+							$content = $this->pstWikitext( $title, $content );
+						}
+					} else {
+						$content = '';
+						if ( $title->getNamespace() == NS_MEDIAWIKI && $params['section'] !== 'new' ) {
+							// If this is a system message, get the default text.
+							$content = $title->getDefaultMessageText();
+						}
+						Hooks::run( 'EditFormPreloadText', [ &$content, &$title ] );
+						if ( $content === '' && !empty( $params['preload'] ) ) {
+							$content = $this->getPreloadContent(
+								$params['preload'], $params['preloadparams'], $title
+							);
+							$preloaded = true;
+						}
 					}
+
 					if ( $content !== '' && $params['paction'] !== 'wikitext' ) {
 						$response = $this->parseWikitextFragment( $title, $content, false, null, true );
 						$content = $response['body'];
