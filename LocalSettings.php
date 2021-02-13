@@ -136,7 +136,6 @@ wfLoadSkin( 'Vector' );
 # to LocalSettings.php. Check specific extension documentation for more details.
 # The following extensions were automatically enabled:
 wfLoadExtension( 'VisualEditor' );
-wfLoadExtension( 'MobileFrontend' );
 
 
 # End of automatically generated settings.
