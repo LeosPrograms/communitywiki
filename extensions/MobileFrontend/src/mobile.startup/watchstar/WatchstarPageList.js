@@ -1,5 +1,5 @@
 var PageList = require( '../PageList' ),
-	watchstar = require( './watchstar' ),
+	Watchstar = require( './Watchstar' ),
 	user = mw.user,
 	util = require( '../util' ),
 	Page = require( '../Page' ),
@@ -12,7 +12,6 @@ var PageList = require( '../PageList' ),
 
 /**
  * List of items page view
- *
  * @class WatchstarPageList
  * @uses Page
  * @uses WatchstarGateway
@@ -69,7 +68,7 @@ mfExtend( WatchstarPageList, PageList, {
 	},
 
 	/**
-	 * @param {jQuery.Element} $items
+	 * @param {JQuery.Element} $items
 	 * @param {WatchStatusMap} statuses
 	 * @return {void}
 	 */
@@ -84,7 +83,7 @@ mfExtend( WatchstarPageList, PageList, {
 	 * @instance
 	 * @param {PageID[]} ids
 	 * @param {PageTitle[]} titles
-	 * @return {jQuery.Deferred<WatchStatusMap>}
+	 * @return {JQuery.Deferred<WatchStatusMap>}
 	 */
 	getPages: function ( ids, titles ) {
 		// Rendering Watchstars for anonymous users is not useful. Short-circuit
@@ -97,7 +96,7 @@ mfExtend( WatchstarPageList, PageList, {
 	},
 
 	/**
-	 * @param {jQuery.Element} $items
+	 * @param {JQuery.Element} $items
 	 * @return {PageTitleToPageIDMap}
 	 * @memberof WatchstarPageList
 	 * @instance
@@ -114,7 +113,7 @@ mfExtend( WatchstarPageList, PageList, {
 	},
 
 	/**
-	 * @param {jQuery.Element} $items
+	 * @param {JQuery.Element} $items
 	 * @param {WatchStatusMap} statuses
 	 * @return {void}
 	 */
@@ -136,26 +135,46 @@ mfExtend( WatchstarPageList, PageList, {
 					title: $item.attr( 'title' ),
 					id: $item.data( 'id' )
 				} ),
+				el = self.parseHTML( '<div>' ).appendTo( $item ),
 				watched = statuses[ page.getTitle() ];
 
-			self._appendWatchstar( $item, page, watched );
+			self._appendWatchstar( el, page, watched );
 			$item.addClass( 'with-watchstar' );
 		} );
 	},
 
 	/**
-	 * @param {jQuery.Object} $item
+	 * @param {HTMLElement} el
 	 * @param {Page} page
 	 * @param {WatchStatus} watched
+	 * @return {Watchstar}
 	 */
-	_appendWatchstar: function ( $item, page, watched ) {
-		watchstar( {
+	_appendWatchstar: function ( el, page, watched ) {
+		var watchstar = new Watchstar( {
+			api: this.options.api,
+			funnel: this.options.funnel,
+			isAnon: user.isAnon(),
 			// WatchstarPageList.getPages() already retrieved the status of
 			// each page. Explicitly set the watch state so another request
 			// will not be issued by the Watchstar.
 			isWatched: watched,
-			page: page
-		} ).appendTo( $item );
+			page: page,
+			el: el
+		} );
+
+		/**
+		 * @event watch
+		 * Fired when an article in the PageList is watched.
+		 */
+		util.repeatEvent( watchstar, this, 'watch' );
+
+		/**
+		 * @event unwatch
+		 * Fired when an article in the PageList is watched.
+		 */
+		util.repeatEvent( watchstar, this, 'unwatch' );
+
+		return watchstar;
 	}
 } );
 

@@ -1,11 +1,5 @@
 <?php
 
-namespace MobileFrontend\Models;
-
-use ArrayIterator;
-use Countable;
-use IteratorAggregate;
-
 /**
  * A collection of pages, which are represented by the MobilePage class.
  */

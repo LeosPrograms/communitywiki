@@ -1,4 +1,4 @@
-const time = require( '../../../src/mobile.startup/time' );
+var time = require( '../../../src/mobile.startup/time' );
 
 QUnit.module( 'MobileFrontend time.js' );
 

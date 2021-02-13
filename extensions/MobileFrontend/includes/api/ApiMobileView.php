@@ -1,31 +1,6 @@
 <?php
 
-namespace MobileFrontend\Api;
-
-use ApiBase;
-use ApiMain;
-use ApiResult;
-use DerivativeContext;
-use ExtensionRegistry;
-use ExtMobileFrontend;
-use FauxRequest;
-use File;
-use ILanguageConverter;
-use ImagePage;
-use MediaWiki\Extensions\XAnalytics\XAnalytics;
 use MediaWiki\MediaWikiServices;
-use Message;
-use MobileFormatter;
-use OutputPage;
-use PageImages\PageImages;
-use ParserOptions;
-use ParserOutput;
-use RequestContext;
-use Title;
-use User;
-use WANObjectCache;
-use Wikimedia\ParamValidator\ParamValidator;
-use WikiPage;
 
 /**
  * Extends Api of MediaWiki with actions for mobile devices. For further information see
@@ -35,34 +10,30 @@ class ApiMobileView extends ApiBase {
 	/**
 	 * Increment this when changing the format of cached data
 	 */
-	private const CACHE_VERSION = 9;
+	const CACHE_VERSION = 9;
 
-	/** @var bool Saves whether redirects has to be followed or not */
+	/** @var boolean Saves whether redirects has to be followed or not */
 	private $followRedirects;
-	/** @var bool Saves whether sections have the header name or not */
+	/** @var boolean Saves whether sections have the header name or not */
 	private $noHeadings;
-	/** @var bool Saves whether the requested page is the main page */
+	/** @var boolean Saves whether the requested page is the main page */
 	private $mainPage;
-	/** @var bool Saves whether the output is formatted or not */
+	/** @var boolean Saves whether the output is formatted or not */
 	private $noTransform;
-	/** @var bool Saves whether page images should be added or not */
+	/** @var boolean Saves whether page images should be added or not */
 	protected $usePageImages;
 	/** @var string Saves in which language the content should be output */
 	private $variant;
-	/** @var int Saves at which character the section content start at */
+	/** @var integer Saves at which character the section content start at */
 	private $offset;
-	/** @var int Saves value to specify the max length of a sections content */
+	/** @var integer Saves value to specify the max length of a sections content */
 	private $maxlen;
 	/** @var File|false Saves a File Object, or false if no file exist */
 	private $file;
 
-	/** @inheritDoc */
-	public function isDeprecated() {
-		return true;
-	}
-
 	/**
-	 * @param ApiMain $main
+	 * Run constructor of ApiBase
+	 * @param ApiMain $main Instance of class ApiMain
 	 * @param string $action Name of this module
 	 */
 	public function __construct( $main, $action ) {
@@ -96,13 +67,13 @@ class ApiMobileView extends ApiBase {
 	 * @todo Write some unit tests for API results
 	 */
 	public function execute() {
-		$services = MediaWikiServices::getInstance();
 		// Logged-in users' parser options depend on preferences
 		$this->getMain()->setCacheMode( 'anon-public-user-private' );
 
 		// Don't strip srcset on renderings for mobileview api; the
 		// app below it will decide how to use them.
-		$services->getService( 'MobileFrontend.Context' )->setStripResponsiveImages( false );
+		MediaWikiServices::getInstance()->getService( 'MobileFrontend.Context' )
+			->setStripResponsiveImages( false );
 
 		// Enough '*' keys in JSON!!!
 		$isXml = $this->getMain()->isInternalMode()
@@ -135,8 +106,6 @@ class ApiMobileView extends ApiBase {
 		$namespace = $title->getNamespace();
 		$this->addXAnalyticsItem( 'ns', (string)$namespace );
 
-		$this->addWarning( 'apiwarn-mobilefrontend-mobileviewdeprecated' );
-
 		// See whether the actual page (or if enabled, the redirect target) is the main page
 		$this->mainPage = $this->isMainPage( $title );
 		if ( $this->mainPage && $this->noHeadings ) {
@@ -145,9 +114,10 @@ class ApiMobileView extends ApiBase {
 
 		}
 		if ( isset( $prop['normalizedtitle'] ) && $title->getPrefixedText() != $params['page'] ) {
-			$langConverter = $this->getLanguageConverter();
+			// @phan-suppress-next-line SecurityCheck-XSS
 			$resultObj->addValue( null, $moduleName,
-				[ 'normalizedtitle' => $langConverter->convert( $title->getPrefixedText() ) ]
+				// @phan-suppress-next-line SecurityCheck-XSS
+				[ 'normalizedtitle' => $title->getPageLanguage()->convert( $title->getPrefixedText() ) ]
 			);
 		}
 
@@ -156,7 +126,7 @@ class ApiMobileView extends ApiBase {
 				'ns' => $namespace,
 			] );
 		}
-		$data = $this->getData( $title, $params['revision'] );
+		$data = $this->getData( $title, $params['noimages'], $params['revision'] );
 		$plainData = [ 'lastmodified', 'lastmodifiedby', 'revision',
 			'languagecount', 'hasvariants', 'displaytitle', 'id', 'contentmodel' ];
 		foreach ( $plainData as $name ) {
@@ -261,9 +231,7 @@ class ApiMobileView extends ApiBase {
 				$req->setIP( '127.0.0.1' );
 				$user = User::newFromSession( $req );
 			}
-			$editable = $services->getPermissionManager()->quickUserCan(
-				'edit', $user, $title
-			);
+			$editable = $title->quickUserCan( 'edit', $user );
 			if ( $isXml ) {
 				$editable = intval( $editable );
 			}
@@ -274,7 +242,7 @@ class ApiMobileView extends ApiBase {
 				]
 			);
 		}
-		// https://phabricator.wikimedia.org/T53586
+		// https://bugzilla.wikimedia.org/show_bug.cgi?id=51586
 		// Inform ppl if the page is infested with LiquidThreads but that's the
 		// only thing we support about it.
 		if ( class_exists( \LqtDispatch::class ) && \LqtDispatch::isLqtPage( $title ) ) {
@@ -327,13 +295,13 @@ class ApiMobileView extends ApiBase {
 	/**
 	 * Small wrapper around XAnalytics extension
 	 *
-	 * @see MediaWiki\Extensions\XAnalytics\XAnalytics::addItem
+	 * @see \XAnalytics::addItem
 	 * @param string $name
 	 * @param string $value
 	 */
 	private function addXAnalyticsItem( $name, $value ) {
-		if ( ExtensionRegistry::getInstance()->isLoaded( 'XAnalytics' ) ) {
-			XAnalytics::addItem( $name, $value );
+		if ( is_callable( [ \XAnalytics::class, 'addItem' ] ) ) {
+			\XAnalytics::addItem( $name, $value );
 		}
 	}
 
@@ -343,12 +311,13 @@ class ApiMobileView extends ApiBase {
 	 * @return Title
 	 */
 	protected function makeTitle( $name ) {
+		$contLang = MediaWikiServices::getInstance()->getContentLanguage();
 		$title = Title::newFromText( $name );
 		if ( !$title ) {
 			$this->dieWithError( [ 'apierror-invalidtitle', wfEscapeWikiText( $name ) ] );
 		}
 		$unconvertedTitle = $title->getPrefixedText();
-		$this->getLanguageConverter()->findVariantLink( $name, $title );
+		$contLang->findVariantLink( $name, $title );
 		if ( $unconvertedTitle !== $title->getPrefixedText() ) {
 			$values = [ 'from' => $unconvertedTitle, 'to' => $title->getPrefixedText() ];
 			$this->getResult()->addValue( 'mobileview', 'converted', $values );
@@ -524,8 +493,7 @@ class ApiMobileView extends ApiBase {
 	 * @return WikiPage
 	 */
 	protected function makeWikiPage( Title $title ) {
-		return MediaWikiServices::getInstance()->getWikiPageFactory()
-			->newFromTitle( $title );
+		return WikiPage::factory( $title );
 	}
 
 	/**
@@ -557,12 +525,15 @@ class ApiMobileView extends ApiBase {
 	) {
 		$data = [];
 		$data['sections'] = $parserOutput->getSections();
-		$langConverter = $this->getLanguageConverter();
-		foreach ( $data['sections'] as $sectionKey => $sectionValue ) {
-			$data['sections'][$sectionKey]['line'] = $langConverter->convert( $sectionValue['line'] );
+		$sectionCount = count( $data['sections'] );
+		for ( $i = 0; $i < $sectionCount; $i++ ) {
+			$data['sections'][$i]['line'] =
+				$title->getPageLanguage()->convert( $data['sections'][$i]['line'] );
 		}
 		$chunks = preg_split( '/<h(?=[1-6]\b)/i', $html );
 		if ( count( $chunks ) != count( $data['sections'] ) + 1 ) {
+			wfDebugLog( 'mobile', __METHOD__ . "(): mismatching number of " .
+				"sections from parser and split on page {$title->getPrefixedText()}, oldid=$revId" );
 			// We can't be sure about anything here, return all page HTML as one big section
 			$chunks = [ $html ];
 			$data['sections'] = [];
@@ -584,11 +555,22 @@ class ApiMobileView extends ApiBase {
 	/**
 	 * Get data of requested article.
 	 * @param Title $title
+	 * @param boolean $noImages
 	 * @param null|int $oldid Revision ID to get the text from, passing null or 0 will
 	 *   get the current revision (default value)
+	 * @suppress SecurityCheck-XSS (T203490)
 	 * @return array
 	 */
-	private function getData( Title $title, $oldid = null ) {
+	private function getData( Title $title, $noImages, $oldid = null ) {
+		global $wgMemc;
+
+		$services = MediaWikiServices::getInstance();
+		$config = $services->getService( 'MobileFrontend.Config' );
+		$context = $services->getService( 'MobileFrontend.Context' );
+
+		$mfMinCachedPageSize = $config->get( 'MFMinCachedPageSize' );
+		$mfSpecialCaseMainPage = $config->get( 'MFSpecialCaseMainPage' );
+
 		$result = $this->getResult();
 		$wikiPage = $this->makeWikiPage( $title );
 		if ( $this->followRedirects && $wikiPage->isRedirect() ) {
@@ -615,145 +597,119 @@ class ApiMobileView extends ApiBase {
 		// Use page_touched so template updates invalidate cache
 		$touched = $wikiPage->getTouched();
 		$revId = $oldid ?: $title->getLatestRevID();
-
-		$services = MediaWikiServices::getInstance();
-		$cache = $services->getMainWANObjectCache();
-
 		if ( $this->file ) {
-			$parserOptions = null;
-			$key = $cache->makeKey(
-				'mf-mobileview',
+			$key = $wgMemc->makeKey(
+				'mf',
+				'mobileview',
+				self::CACHE_VERSION,
+				$noImages,
 				$touched,
-				(int)$this->noTransform,
+				$this->noTransform,
 				$this->file->getSha1(),
 				$this->variant
 			);
+			$cacheExpiry = 3600;
 		} else {
 			if ( !$latest ) {
-				// https://phabricator.wikimedia.org/T55378
+				// https://bugzilla.wikimedia.org/show_bug.cgi?id=53378
 				// Title::exists() above doesn't seem to always catch recently deleted pages
 				$this->dieWithError( [ 'apierror-missingtitle' ] );
 			}
 			$parserOptions = $this->makeParserOptions( $wikiPage );
-			$parserCacheMetadata = $services->getParserCache()->getMetadata( $wikiPage );
-			$key = $cache->makeKey(
-				'mf-mobileview',
-				$wikiPage->getId(),
+			$parserCache = \MediaWiki\MediaWikiServices::getInstance()->getParserCache();
+			$parserCacheKey = $parserCache->getKey( $wikiPage, $parserOptions );
+			$key = $wgMemc->makeKey(
+				'mf',
+				'mobileview',
+				self::CACHE_VERSION,
+				$noImages,
 				$touched,
 				$revId,
-				(int)$this->noTransform,
-				$parserOptions->optionsHash(
-					$parserCacheMetadata ? $parserCacheMetadata->getUsedOptions() :
-						ParserOptions::allCacheVaryingOptions()
-				)
+				$this->noTransform,
+				$parserCacheKey
 			);
 		}
-
-		$miss = false;
-		$data = $cache->getWithSetCallback(
-			$key,
-			$cache::TTL_HOUR,
-			function ( $oldValue, &$ttl ) use (
-				$title, $revId, $wikiPage, $parserOptions, $latest, &$miss
-			) {
-				$miss = true;
-
-				$services = MediaWikiServices::getInstance();
-				$config = $services->getService( 'MobileFrontend.Config' );
-				$context = $services->getService( 'MobileFrontend.Context' );
-
-				$mfMinCachedPageSize = $config->get( 'MFMinCachedPageSize' );
-
-				if ( $this->file ) {
-					$parserOutput = null;
-					$html = $this->getFilePage( $title );
-				} else {
-					$parserOutput = $this->getParserOutput( $wikiPage, $parserOptions, $revId );
-					if ( $parserOutput === false ) {
-						$this->dieWithError( 'apierror-mobilefrontend-badidtitle', 'invalidparams' );
-					}
-					$html = $parserOutput->getText( [ 'allowTOC' => false, 'unwrap' => true,
-						'deduplicateStyles' => false ] );
-				}
-
-				if ( !$this->noTransform ) {
-					$mf = new MobileFormatter(
-						MobileFormatter::wrapHTML( $html ), $title, $config, $context
-					);
-					$mf->applyTransforms( [] );
-					$html = $mf->getText();
-				}
-
-				if ( $this->mainPage || $this->file ) {
-					$data = [
-						'sections' => [],
-						'text' => [ $html ],
-						'refsections' => [],
-					];
-				} else {
-					$data = $this->parseSectionsData( $html, $title, $parserOutput, $latest );
-					if ( $this->usePageImages ) {
-						$image = $this->getPageImage( $title );
-						if ( $image ) {
-							$data['image'] = $image->getTitle()->getText();
-						}
-					}
-				}
-
-				$data['lastmodified'] = wfTimestamp( TS_ISO_8601, $wikiPage->getTimestamp() );
-
-				// Page id
-				$data['id'] = $wikiPage->getId();
-				$user = User::newFromId( $wikiPage->getUser() );
-				if ( !$user->isAnon() ) {
-					$userOptionsLookup = $services->getUserOptionsLookup();
-					$data['lastmodifiedby'] = [
-						'name' => $wikiPage->getUserText(),
-						'gender' => $userOptionsLookup->getOption( $user, 'gender' ),
-					];
-				} else {
-					$data['lastmodifiedby'] = null;
-				}
-				$data['revision'] = $revId;
-
-				if ( isset( $parserOutput ) ) {
-					$languages = $parserOutput->getLanguageLinks();
-					$data['languagecount'] = count( $languages );
-					$data['displaytitle'] = $parserOutput->getDisplayTitle();
-					// @fixme: Does no work for some extension properties that get added in LinksUpdate
-					$data['pageprops'] = $parserOutput->getProperties();
-				} else {
-					$data['languagecount'] = 0;
-					$data['displaytitle'] = htmlspecialchars( $title->getPrefixedText() );
-					$data['pageprops'] = [];
-				}
-
-				$data['contentmodel'] = $title->getContentModel();
-
-				$langHasVariants = $this->getLanguageConverter()->hasVariants();
-				if ( $langHasVariants ) {
-					$data['hasvariants'] = true;
-				}
-
-				if ( strlen( $html ) < $mfMinCachedPageSize ) {
-					// Don't store small pages to decrease cache size requirements
-					// @TODO: maybe consider regeneration time?
-					$ttl = WANObjectCache::TTL_UNCACHEABLE;
-				} elseif ( $parserOutput ) {
-					// Store for the same time as original parser output
-					$ttl = $parserOutput->getCacheExpiry();
-				}
-
-				return $data;
-			},
-			[ 'version' => self::CACHE_VERSION ]
-		);
-
-		$stats = $services->getStatsdDataFactory();
-		if ( $miss ) {
-			$stats->updateCount( 'mobile.view.cache-miss', 1 );
+		$data = $wgMemc->get( $key );
+		if ( $data ) {
+			wfIncrStats( 'mobile.view.cache-hit' );
+			return $data;
+		}
+		wfIncrStats( 'mobile.view.cache-miss' );
+		if ( $this->file ) {
+			$html = $this->getFilePage( $title );
 		} else {
-			$stats->updateCount( 'mobile.view.cache-hit', 1 );
+			$parserOutput = $this->getParserOutput( $wikiPage, $parserOptions, $oldid );
+			if ( $parserOutput === false ) {
+				$this->dieWithError( 'apierror-mobilefrontend-badidtitle', 'invalidparams' );
+			}
+			$html = $parserOutput->getText( [ 'allowTOC' => false, 'unwrap' => true,
+				'deduplicateStyles' => false ] );
+			$cacheExpiry = $parserOutput->getCacheExpiry();
+		}
+
+		if ( !$this->noTransform ) {
+			$mf = new MobileFormatter(
+				MobileFormatter::wrapHTML( $html ), $title, $config, $context
+			);
+			$mf->setRemoveMedia( $noImages );
+			$mf->setIsMainPage( $this->mainPage && $mfSpecialCaseMainPage );
+			$mf->filterContent();
+			$html = $mf->getText();
+		}
+
+		if ( $this->mainPage || $this->file ) {
+			$data = [
+				'sections' => [],
+				'text' => [ $html ],
+				'refsections' => [],
+			];
+		} else {
+			$data = $this->parseSectionsData( $html, $title, $parserOutput, $latest );
+			if ( $this->usePageImages ) {
+				$image = $this->getPageImage( $title );
+				if ( $image ) {
+					$data['image'] = $image->getTitle()->getText();
+				}
+			}
+		}
+
+		$data['lastmodified'] = wfTimestamp( TS_ISO_8601, $wikiPage->getTimestamp() );
+
+		// Page id
+		$data['id'] = $wikiPage->getId();
+		$user = User::newFromId( $wikiPage->getUser() );
+		if ( !$user->isAnon() ) {
+			$data['lastmodifiedby'] = [
+				'name' => $wikiPage->getUserText(),
+				'gender' => $user->getOption( 'gender' ),
+			];
+		} else {
+			$data['lastmodifiedby'] = null;
+		}
+		$data['revision'] = $revId;
+
+		if ( isset( $parserOutput ) ) {
+			$languages = $parserOutput->getLanguageLinks();
+			$data['languagecount'] = count( $languages );
+			$data['displaytitle'] = $parserOutput->getDisplayTitle();
+			// @fixme: Does no work for some extension properties that get added in LinksUpdate
+			$data['pageprops'] = $parserOutput->getProperties();
+		} else {
+			$data['languagecount'] = 0;
+			$data['displaytitle'] = htmlspecialchars( $title->getPrefixedText() );
+			$data['pageprops'] = [];
+		}
+
+		$data['contentmodel'] = $title->getContentModel();
+
+		if ( $title->getPageLanguage()->hasVariants() ) {
+			$data['hasvariants'] = true;
+		}
+
+		// Don't store small pages to decrease cache size requirements
+		if ( strlen( $html ) >= $mfMinCachedPageSize ) {
+			// store for the same time as original parser output
+			$wgMemc->set( $key, $data, $cacheExpiry );
 		}
 
 		return $data;
@@ -763,6 +719,7 @@ class ApiMobileView extends ApiBase {
 	 * Get a Filepage as parsed HTML
 	 * @param Title $title
 	 * @return string HTML
+	 * @suppress SecurityCheck-XSS OutputPage::getHtml is a hack, but safe html
 	 */
 	private function getFilePage( Title $title ) {
 		// HACK: HACK: HACK:
@@ -916,11 +873,11 @@ class ApiMobileView extends ApiBase {
 			],
 			'redirect' => [
 				ApiBase::PARAM_TYPE => [ 'yes', 'no' ],
-				ParamValidator::PARAM_DEFAULT => 'yes',
+				ApiBase::PARAM_DFLT => 'yes',
 			],
 			'sections' => null,
 			'prop' => [
-				ParamValidator::PARAM_DEFAULT => 'text|sections|normalizedtitle',
+				ApiBase::PARAM_DFLT => 'text|sections|normalizedtitle',
 				ApiBase::PARAM_ISMULTI => true,
 				ApiBase::PARAM_TYPE => [
 					'id',
@@ -952,33 +909,34 @@ class ApiMobileView extends ApiBase {
 					'anchor',
 				],
 				ApiBase::PARAM_ISMULTI => true,
-				ParamValidator::PARAM_DEFAULT => 'toclevel|line',
+				ApiBase::PARAM_DFLT => 'toclevel|line',
 			],
 			'pageprops' => [
 				ApiBase::PARAM_TYPE => 'string',
-				ParamValidator::PARAM_DEFAULT => 'notoc|noeditsection|wikibase_item'
+				ApiBase::PARAM_DFLT => 'notoc|noeditsection|wikibase_item'
 			],
 			'variant' => [
 				ApiBase::PARAM_TYPE => 'string',
-				ParamValidator::PARAM_DEFAULT => '',
+				ApiBase::PARAM_DFLT => '',
 			],
+			'noimages' => false,
 			'noheadings' => false,
 			'notransform' => false,
 			'onlyrequestedsections' => false,
 			'offset' => [
 				ApiBase::PARAM_TYPE => 'integer',
 				ApiBase::PARAM_MIN => 0,
-				ParamValidator::PARAM_DEFAULT => 0,
+				ApiBase::PARAM_DFLT => 0,
 			],
 			'maxlen' => [
 				ApiBase::PARAM_TYPE => 'integer',
 				ApiBase::PARAM_MIN => 0,
-				ParamValidator::PARAM_DEFAULT => 0,
+				ApiBase::PARAM_DFLT => 0,
 			],
 			'revision' => [
 				ApiBase::PARAM_TYPE => 'integer',
 				ApiBase::PARAM_MIN => 0,
-				ParamValidator::PARAM_DEFAULT => 0,
+				ApiBase::PARAM_DFLT => 0,
 			],
 		];
 		if ( $this->usePageImages ) {
@@ -1014,16 +972,5 @@ class ApiMobileView extends ApiBase {
 	 */
 	public function getHelpUrls() {
 		return 'https://www.mediawiki.org/wiki/Special:MyLanguage/Extension:MobileFrontend#API';
-	}
-
-	/**
-	 * @since 1.35
-	 * @return ILanguageConverter
-	 */
-	private function getLanguageConverter() : ILanguageConverter {
-		$services = MediaWikiServices::getInstance();
-		return $services
-			->getLanguageConverterFactory()
-			->getLanguageConverter( $services->getContentLanguage() );
 	}
 }

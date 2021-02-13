@@ -1,5 +1,3 @@
-'use strict';
-
 const assert = require( 'assert' ),
 	Api = require( 'wdio-mediawiki/Api' ),
 	{ ArticlePage, UserLoginPage, api } = require( '../support/world.js' );
@@ -11,7 +9,7 @@ const waitForPropagation = ( timeMs ) => {
 };
 
 const theTextOfTheFirstHeadingShouldContain = ( title ) => {
-	ArticlePage.first_heading_element.waitForDisplayed();
+	ArticlePage.first_heading_element.waitForVisible();
 	assert.strictEqual(
 		ArticlePage.first_heading_element.getText().indexOf( title ) > -1,
 		true

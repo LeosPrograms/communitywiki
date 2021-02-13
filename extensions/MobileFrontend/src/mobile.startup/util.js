@@ -2,7 +2,6 @@
 
 /**
  * Utility library
- *
  * @class util
  * @singleton
  */
@@ -10,7 +9,6 @@ module.exports = {
 	/**
 	 * Obtains the correct label for the save button which is project specific. It's either
 	 * "save" or "publish"
-	 *
 	 * @return {string}
 	 */
 	saveButtonMessage: function () {
@@ -19,14 +17,12 @@ module.exports = {
 	},
 	/**
 	 * Wrapper class for Promises
-	 *
 	 * @memberof util
 	 * @instance
 	 */
 	Promise: {
 		/**
 		 * Wrapper class for the $.when that is compatible with Promise.all
-		 *
 		 * @memberof util
 		 * @param {jQuery.Promise[]} promises
 		 * @instance
@@ -38,7 +34,6 @@ module.exports = {
 	},
 	/**
 	 * Escape a string for use as a css selector
-	 *
 	 * @memberof util
 	 * @instance
 	 * @param {string} selector
@@ -49,7 +44,6 @@ module.exports = {
 	},
 	/**
 	 * Wrapper class for the $.grep
-	 *
 	 * @memberof util
 	 * @instance
 	 * @return {jQuery.Deferred}
@@ -59,7 +53,6 @@ module.exports = {
 	},
 	/**
 	 * Run method when document is ready.
-	 *
 	 * @memberof util
 	 * @instance
 	 * @param {Function} fn
@@ -70,7 +63,6 @@ module.exports = {
 	},
 	/**
 	 * Wrapper class for the Deferred method
-	 *
 	 * @memberof util
 	 * @instance
 	 * @return {jQuery.Deferred}
@@ -80,7 +72,6 @@ module.exports = {
 	},
 	/**
 	 * Adds a class to the document
-	 *
 	 * @memberof util
 	 * @instance
 	 * @return {jQuery.Object} element representing the documentElement
@@ -90,7 +81,6 @@ module.exports = {
 	},
 	/**
 	 * Get the window object
-	 *
 	 * @memberof util
 	 * @instance
 	 * @return {jQuery.Object}
@@ -102,7 +92,6 @@ module.exports = {
 	 * Given some html, create new element(s).
 	 * Unlike jQuery.parseHTML this will return a jQuery object
 	 * not an array.
-	 *
 	 * @memberof util
 	 * @instance
 	 * @param {string} html
@@ -116,7 +105,6 @@ module.exports = {
 	},
 	/**
 	 * wrapper for jQuery util function to check if something is numeric
-	 *
 	 * @memberof util
 	 * @instance
 	 * @return {boolean}
@@ -143,7 +131,6 @@ module.exports = {
 	 * look like CSS classes and pseudoclasses. See
 	 * http://bugs.jquery.com/ticket/5241
 	 * http://stackoverflow.com/questions/350292/how-do-i-get-jquery-to-select-elements-with-a-period-in-their-id
-	 *
 	 * @memberof util
 	 * @instance
 	 * @param {string} hash A hash to escape
@@ -156,7 +143,6 @@ module.exports = {
 	/**
 	 * Heuristic for determining whether an Event should be handled by
 	 * MobileFrontend or allowed to bubble to the browser.
-	 *
 	 * @memberof util
 	 * @instance
 	 * @param {Event} ev
@@ -196,7 +182,7 @@ module.exports = {
 	 *
 	 * T223927: We depend on the global Mustache brought in by the
 	 * mediawiki.template.mustache module but do not delegate to
-	 * mediawiki.template.mustache.js because its render method returns a jQuery
+	 * mediawiki.template.mustache.js because its render method returns a JQuery
 	 * object, but our MobileFrontend code depends on .render returning a string.
 	 *
 	 * @param {string} source code of template that is Mustache compatible.

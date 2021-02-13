@@ -11,11 +11,10 @@ use MobileFrontend\ContentProviders\MwApiContentProvider;
  */
 class ContentProviderFactoryTest extends MediaWikiTestCase {
 	// Test HTML
-	private const TEST_HTML = '<a>Anchor</a>';
+	const TEST_HTML = '<a>Anchor</a>';
 
 	/**
 	 * Mock OutputPage class
-	 * @return OutputPage
 	 */
 	private function mockOutputPage() {
 		// Mock Title class
@@ -33,7 +32,7 @@ class ContentProviderFactoryTest extends MediaWikiTestCase {
 		// Mock OutputPage class
 		$mockOutputPage = $this->getMockBuilder( OutputPage::class )
 			->disableOriginalConstructor()
-			->onlyMethods( [ 'getTitle', 'getRequest', 'getSkin' ] )
+			->setMethods( [ 'getTitle', 'getRequest', 'getSkin' ] )
 			->getMock();
 
 		$mockOutputPage->method( 'getTitle' )
@@ -50,7 +49,6 @@ class ContentProviderFactoryTest extends MediaWikiTestCase {
 
 	/**
 	 * Mock the OutputPage class where title doesn't exist
-	 * @return OutputPage
 	 */
 	private function mockOutputPageWithNoTitle() {
 		// Mock Title class
@@ -66,6 +64,7 @@ class ContentProviderFactoryTest extends MediaWikiTestCase {
 
 	/**
 	 * @covers ::getProvider
+	 * @expectedException \RuntimeException
 	 */
 	public function testGetProviderWithNoMFContentProvider() {
 		$mockOutputPage = $this->mockOutputPage();
@@ -73,7 +72,6 @@ class ContentProviderFactoryTest extends MediaWikiTestCase {
 			'MFContentProviderClass' => ''
 		] );
 		$factory = new ContentProviderFactory( $config );
-		$this->expectException( RuntimeException::class );
 		$factory->getProvider( $mockOutputPage, self::TEST_HTML );
 	}
 
@@ -120,6 +118,7 @@ class ContentProviderFactoryTest extends MediaWikiTestCase {
 
 	/**
 	 * @covers ::getProvider
+	 * @expectedException \RuntimeException
 	 */
 	public function testGetProviderWithInvalidContentProvider() {
 		$mockOutputPage = $this->mockOutputPage();
@@ -129,7 +128,6 @@ class ContentProviderFactoryTest extends MediaWikiTestCase {
 			'MFContentProviderScriptPath' => false
 		] );
 		$factory = new ContentProviderFactory( $config );
-		$this->expectException( RuntimeException::class );
 		$factory->getProvider( $mockOutputPage, self::TEST_HTML );
 	}
 

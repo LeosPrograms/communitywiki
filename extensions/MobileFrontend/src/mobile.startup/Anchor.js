@@ -4,7 +4,6 @@ var
 
 /**
  * A wrapper for creating an anchor.
- *
  * @extends View
  */
 class Anchor extends View {

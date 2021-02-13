@@ -1,7 +1,6 @@
-let
+var
 	TalkSectionAddOverlay,
-	sandbox;
-const
+	sandbox,
 	util = require( '../../../src/mobile.startup/util' ),
 	jQuery = require( '../utils/jQuery' ),
 	dom = require( '../utils/dom' ),
@@ -28,7 +27,7 @@ QUnit.module( 'MobileFrontend TalkSectionAddOverlay', {
 } );
 
 QUnit.test( 'save()', function ( assert ) {
-	const overlay = new TalkSectionAddOverlay( {
+	var overlay = new TalkSectionAddOverlay( {
 		api: {
 			postWithToken: sandbox.stub().returns(
 				util.Deferred().resolve()

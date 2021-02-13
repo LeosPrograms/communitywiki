@@ -1,19 +1,19 @@
 {
 	"@metadata": {
 		"authors": [
-			"23artashes",
-			"Aram1985",
-			"Arman musikyan",
 			"Chaojoker",
-			"GrigorGB",
 			"Jazz",
-			"Kareyac",
 			"M hamlet",
 			"Pandukht",
 			"Vadgt",
 			"Xelgen",
+			"Arman musikyan",
+			"GrigorGB",
+			"Դավիթ Սարոյան",
+			"Aram1985",
 			"Աշոտ1997",
-			"Դավիթ Սարոյան"
+			"Kareyac",
+			"23artashes"
 		]
 	},
 	"mobile-frontend-categories-add": "Ավելացնել կատեգորիային",
@@ -29,7 +29,6 @@
 	"mobile-frontend-diffview-anonymous": "Անանուն մասնակից",
 	"mobile-frontend-diffview-bytesadded": "Ավելացվել է $1 բայտ",
 	"mobile-frontend-edit-login-action": "Օգնեք բարելավել {{SITENAME}} կայքը:</strong><br />Մուտք գործեք խմբագրելու համար:",
-	"mobile-frontend-editor-blocked-drawer-action-ok": "Լավ",
 	"mobile-frontend-editor-blocked-drawer-help": "Մանրամասներ",
 	"mobile-frontend-editor-generic-block-reason": "Անհայտ պատճառ",
 	"mobile-frontend-editor-cancel": "Չեղարկել",

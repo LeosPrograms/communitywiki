@@ -1,45 +1,16 @@
 <?php
 
 use MediaWiki\MediaWikiServices;
-use MobileFrontend\ContentProviders\ContentProviderFactory;
-use MobileFrontend\Transforms\LazyImageTransform;
-use MobileFrontend\Transforms\MakeSectionsTransform;
-use MobileFrontend\Transforms\MoveLeadParagraphTransform;
-use MobileFrontend\Transforms\SubHeadingTransform;
 use Wikibase\Client\WikibaseClient;
 use Wikibase\DataModel\Entity\EntityDocument;
 use Wikibase\DataModel\Entity\ItemId;
 use Wikibase\DataModel\Term\FingerprintProvider;
-use Wikimedia\IPUtils;
+use MobileFrontend\ContentProviders\ContentProviderFactory;
 
 /**
  * Implements additional functions to use in MobileFrontend
  */
 class ExtMobileFrontend {
-	/**
-	 * Provide alternative HTML for a user page which has not been created.
-	 * Let the user know about it with pretty graphics and different texts depending
-	 * on whether the user is the owner of the page or not.
-	 * @param OutputPage $out
-	 * @param Title $title
-	 * @return string that is empty if the transform does not apply.
-	 */
-	public static function blankUserPageHTML( OutputPage $out, Title $title ) {
-		$pageUser = self::buildPageUserObject( $title );
-
-		$out->addModuleStyles( [
-			'mediawiki.ui.icon',
-			'mobile.userpage.styles', 'mobile.userpage.images'
-		] );
-
-		if ( $pageUser && !$title->exists() ) {
-			return self::getUserPageContent(
-				$out, $pageUser, $title );
-		} else {
-			return '';
-		}
-	}
-
 	/**
 	 * Transforms content to be mobile friendly version.
 	 * Filters out various elements and runs the MobileFormatter.
@@ -54,7 +25,6 @@ class ExtMobileFrontend {
 		$featureManager = $services->getService( 'MobileFrontend.FeaturesManager' );
 		/** @var ContentProviderFactory $contentProviderFactory */
 		$contentProviderFactory = $services->getService( 'MobileFrontend.ContentProviderFactory' );
-		/** @var MobileContext $context */
 		$context = $services->getService( 'MobileFrontend.Context' );
 		$config = $services->getService( 'MobileFrontend.Config' );
 		$provideTagline = $featureManager->isFeatureAvailableForCurrentUser(
@@ -70,6 +40,23 @@ class ExtMobileFrontend {
 		$title = $out->getTitle();
 		$ns = $title->getNamespace();
 		$isView = $context->getRequest()->getText( 'action', 'view' ) == 'view';
+
+		// If the page is a user page which has not been created, then let the
+		// user know about it with pretty graphics and different texts depending
+		// on whether the user is the owner of the page or not.
+		if ( $ns === NS_USER && !$title->isSubpage() && $isView ) {
+			$pageUser = self::buildPageUserObject( $title );
+
+			$out->addModuleStyles( [
+				'mediawiki.ui.icon',
+				'mobile.userpage.styles', 'mobile.userpage.images'
+			] );
+
+			if ( $pageUser && !$title->exists() ) {
+				return self::getUserPageContent(
+					$out, $pageUser, $title );
+			}
+		}
 
 		$enableSections = (
 			// Don't collapse sections e.g. on JS pages
@@ -92,43 +79,21 @@ class ExtMobileFrontend {
 			return $html;
 		}
 
-		$formatter = new MobileFormatter(
-			MobileFormatter::wrapHtml( $html ),
-			$title,
-			$config,
-			$context
-		);
+		$formatter = MobileFormatter::newFromContext( $context, $provider, $enableSections );
 
-		$hookContainer = $services->getHookContainer();
-		$hookContainer->run( 'MobileFrontendBeforeDOM', [ $context, $formatter ] );
+		Hooks::run( 'MobileFrontendBeforeDOM', [ $context, $formatter ] );
 
-		$shouldLazyTransformImages = $featureManager->isFeatureAvailableForCurrentUser( 'MFLazyLoadImages' );
-		$leadParagraphEnabled = in_array( $ns, $config->get( 'MFNamespacesWithLeadParagraphs' ) );
-		$showFirstParagraphBeforeInfobox = $leadParagraphEnabled &&
-			$featureManager->isFeatureAvailableForCurrentUser( 'MFShowFirstParagraphBeforeInfobox' );
+		if ( $context->getContentTransformations() ) {
+			$isSpecialPage = $title->isSpecialPage();
+			$removeImages = $featureManager->isFeatureAvailableForCurrentUser( 'MFLazyLoadImages' );
+			$showFirstParagraphBeforeInfobox = $ns === NS_MAIN &&
+				$featureManager->isFeatureAvailableForCurrentUser( 'MFShowFirstParagraphBeforeInfobox' );
 
-		$transforms = [];
-		if ( $enableSections ) {
-			$options = $config->get( 'MFMobileFormatterOptions' );
-			$topHeadingTags = $options['headings'];
-
-			$transforms[] = new SubHeadingTransform( $topHeadingTags );
-
-			$transforms[] = new MakeSectionsTransform(
-				$topHeadingTags,
-				true
-			);
+			// Remove images if they're disabled from special pages, but don't transform otherwise
+			$formatter->filterContent( !$isSpecialPage,
+				null,
+				$removeImages, $showFirstParagraphBeforeInfobox );
 		}
-
-		if ( $shouldLazyTransformImages ) {
-			$transforms[] = new LazyImageTransform( $config->get( 'MFLazyLoadSkipSmallImages' ) );
-		}
-
-		if ( $showFirstParagraphBeforeInfobox ) {
-			$transforms[] = new MoveLeadParagraphTransform( $title, $title->getLatestRevID() );
-		}
-
-		$formatter->applyTransforms( $transforms );
 
 		return $formatter->getText();
 	}
@@ -141,8 +106,7 @@ class ExtMobileFrontend {
 	private static function buildPageUserObject( Title $title ) {
 		$titleText = $title->getText();
 
-		$usernameUtils = MediaWikiServices::getInstance()->getUserNameUtils();
-		if ( $usernameUtils->isIP( $titleText ) || IPUtils::isIPv6( $titleText ) ) {
+		if ( User::isIP( $titleText ) ) {
 			return User::newFromAnyId( null, $titleText, null );
 		}
 
@@ -162,9 +126,7 @@ class ExtMobileFrontend {
 	 * @param Title $title
 	 * @return string
 	 */
-	protected static function getUserPageContent( IContextSource $output,
-		User $pageUser, Title $title
-	) {
+	public static function getUserPageContent( IContextSource $output, User $pageUser, Title $title ) {
 		$context = MediaWikiServices::getInstance()->getService( 'MobileFrontend.Context' );
 		$pageUsername = $pageUser->getName();
 		// Is the current user viewing their own page?

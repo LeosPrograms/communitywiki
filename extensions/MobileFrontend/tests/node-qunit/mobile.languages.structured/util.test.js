@@ -1,9 +1,8 @@
-const
+var
 	jQuery = require( '../utils/jQuery' ),
 	dom = require( '../utils/dom' ),
 	mediaWiki = require( '../utils/mw' ),
-	sinon = require( 'sinon' );
-let
+	sinon = require( 'sinon' ),
 	util,
 	sandbox;
 
@@ -212,8 +211,8 @@ QUnit.test( '#saveLanguageUsageCount', function ( assert ) {
 } );
 
 QUnit.test( '#getStructuredLanguages', function ( assert ) {
-	const result = util.getStructuredLanguages(
-		this.apiLanguages, false, this.frequentlyUsedLanguages, true, this.deviceLanguage
+	var result = util.getStructuredLanguages(
+		this.apiLanguages, false, this.frequentlyUsedLanguages, this.deviceLanguage
 	);
 
 	assert.propEqual(
@@ -224,8 +223,8 @@ QUnit.test( '#getStructuredLanguages', function ( assert ) {
 } );
 
 QUnit.test( '#getStructuredLanguages device language', function ( assert ) {
-	const result =
-		util.getStructuredLanguages( this.apiLanguages, false, {}, true, 'es-lx' ).suggested[0].lang;
+	var result =
+		util.getStructuredLanguages( this.apiLanguages, false, {}, 'es-lx' ).suggested[0].lang;
 
 	// device language is a variant and only the parent language is available
 	assert.strictEqual(
@@ -236,10 +235,11 @@ QUnit.test( '#getStructuredLanguages device language', function ( assert ) {
 } );
 
 QUnit.test( '#getStructuredLanguages variants', function ( assert ) {
-	const variantsMap = {};
+	var suggestedLanguages,
+		variantsMap = {};
 
-	const suggestedLanguages = util.getStructuredLanguages(
-		this.apiLanguages, this.apiVariants, {}, true, this.deviceLanguage
+	suggestedLanguages = util.getStructuredLanguages(
+		this.apiLanguages, this.apiVariants, {}, this.deviceLanguage
 	).suggested;
 	this.apiVariants.forEach( function ( variant ) {
 		variantsMap[ variant.lang ] = variant;

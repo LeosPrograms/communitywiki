@@ -4,20 +4,20 @@ var
 	Overlay = require( '../mobile.startup/Overlay' ),
 	PageGateway = require( '../mobile.startup/PageGateway' ),
 	util = require( '../mobile.startup/util' ),
-	makeAddTopicForm = require( './makeAddTopicForm' );
+	makeAddTopicForm = require( './makeAddTopicForm' ),
+	toast = require( '../mobile.startup/toast' );
 
 /**
  * Overlay for adding a talk section
- *
  * @class TalkSectionAddOverlay
  * @extends Overlay
+ * @uses Toast
  *
  * @param {Object} options Configuration options
- * @param {mw.Api} options.api
  * @param {Object} options.title Title of the talk page being modified
- * @param {string} options.licenseMsg
  * @param {Object} options.currentPageTitle Title of the page before the overlay appears
- * @param {Function} [options.onSaveComplete] executed when a save has completed
+ * @param {OO.EventEmitter} options.eventBus Object used to emit talk-added-wo-overlay
+ * @param {Function} options.onSaveComplete executed when a save has completed
  * and talk-discussion-added events
  */
 function TalkSectionAddOverlay( options ) {
@@ -35,6 +35,7 @@ function TalkSectionAddOverlay( options ) {
 	this.onSaveComplete = options.onSaveComplete;
 	this.title = options.title;
 	this.currentPageTitle = options.currentPageTitle;
+	this.eventBus = options.eventBus;
 	// Variable to indicate, if the overlay will be closed by the save function
 	// or by the user. If this is false and there is content in the input fields,
 	// the user will be asked, if he want to abandon his changes before we close
@@ -59,8 +60,9 @@ mfExtend( TalkSectionAddOverlay, Overlay, {
 	 * @instance
 	 */
 	postRender: function () {
+		let topicForm;
 		Overlay.prototype.postRender.call( this );
-		const topicForm = makeAddTopicForm( {
+		topicForm = makeAddTopicForm( {
 			subject: '',
 			body: '',
 			disabled: false,
@@ -84,14 +86,12 @@ mfExtend( TalkSectionAddOverlay, Overlay, {
 
 		empty = ( !this.$subject.val() && !this.$ta.val() );
 		// TODO: Replace with an OOUI dialog
-		// eslint-disable-next-line no-alert
 		if ( this._saveHit || empty || window.confirm( confirmMessage ) ) {
 			exit();
 		}
 	},
 	/**
 	 * Handles an input into a textarea and enables or disables the submit button
-	 *
 	 * @memberof TalkSectionAddOverlay
 	 * @param {string} subject
 	 * @param {string} body
@@ -112,15 +112,20 @@ mfExtend( TalkSectionAddOverlay, Overlay, {
 	},
 	/**
 	 * Handles a click on the save button
-	 *
 	 * @memberof TalkSectionAddOverlay
 	 * @instance
 	 */
 	onSaveClick: function () {
+		var isOnTalkPage = this.title === this.currentPageTitle;
+
 		this.showHidden( '.saving-header' );
 		this.save().then( function ( status ) {
-			if ( status === 'ok' && this.options.onSaveComplete ) {
-				this.onSaveComplete();
+			if ( status === 'ok' ) {
+				if ( isOnTalkPage ) {
+					this.eventBus.emit( 'talk-added-wo-overlay' );
+				} else {
+					this.onSaveComplete();
+				}
 			}
 		}.bind( this ), function ( error ) {
 			var editMsg = mw.msg( 'mobile-frontend-talk-topic-error' );
@@ -145,13 +150,12 @@ mfExtend( TalkSectionAddOverlay, Overlay, {
 					break;
 			}
 
-			mw.notify( editMsg, { type: 'error' } );
+			toast.show( editMsg, { type: 'error' } );
 			this.showHidden( '.save-header, .save-panel' );
 		}.bind( this ) );
 	},
 	/**
 	 * Save new talk section
-	 *
 	 * @memberof TalkSectionAddOverlay
 	 * @instance
 	 * @return {jQuery.Deferred} Object that either will be resolved with ok parameter

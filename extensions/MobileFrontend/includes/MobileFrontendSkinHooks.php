@@ -4,6 +4,66 @@ use MediaWiki\MediaWikiServices;
 
 class MobileFrontendSkinHooks {
 	/**
+	 * Make it possible to open sections while JavaScript is still loading.
+	 *
+	 * @return string The JavaScript code to add event handlers to the skin
+	 */
+	public static function interimTogglingSupport() {
+		$js = <<<JAVASCRIPT
+function mfTempOpenSection( id ) {
+	var block = document.getElementById( "mf-section-" + id );
+	block.className += " open-block";
+	// The previous sibling to the content block is guaranteed to be the
+	// associated heading due to mobileformatter. We need to add the same
+	// class to flip the collapse arrow icon.
+	// <h[1-6]>heading</h[1-6]><div id="mf-section-[1-9]+"></div>
+	block.previousSibling.className += " open-block";
+}
+JAVASCRIPT;
+		return Html::inlineScript(
+			ResourceLoader::filter( 'minify-js', $js )
+		);
+	}
+
+	/**
+	 * Fallback for Grade C to load lazyload image placeholders.
+	 *
+	 * Note: This will add a single repaint for Grade C browsers as
+	 * images enter view but this is intentional and deemed acceptable.
+	 *
+	 * @return string The JavaScript code to load lazy placeholders in Grade C browsers
+	 */
+	public static function gradeCImageSupport() {
+		// Notes:
+		// * Document#getElementsByClassName is supported by IE9+ and #querySelectorAll is
+		// supported by IE8+. To gain the widest possible browser support we scan for
+		// noscript tags using #getElementsByTagName and look at the next sibling.
+		// If the next sibling has the lazy-image-placeholder class then it will be assumed
+		// to be a placeholder and replace with an img tag.
+		// * Iterating over the live NodeList from getElementsByTagName() is suboptimal
+		// but in IE < 9, Array#slice() throws when given a NodeList. It also requires
+		// the 2nd argument ('end').
+		$js = <<<JAVASCRIPT
+(window.NORLQ = window.NORLQ || []).push( function () {
+	var ns, i, p, img;
+	ns = document.getElementsByTagName( 'noscript' );
+	for ( i = 0; i < ns.length; i++ ) {
+		p = ns[i].nextSibling;
+		if ( p && p.className && p.className.indexOf( 'lazy-image-placeholder' ) > -1 ) {
+			img = document.createElement( 'img' );
+			img.setAttribute( 'src', p.getAttribute( 'data-src' ) );
+			img.setAttribute( 'width', p.getAttribute( 'data-width' ) );
+			img.setAttribute( 'height', p.getAttribute( 'data-height' ) );
+			img.setAttribute( 'alt', p.getAttribute( 'data-alt' ) );
+			p.parentNode.replaceChild( img, p );
+		}
+	}
+} );
+JAVASCRIPT;
+		return $js;
+	}
+
+	/**
 	 * Returns HTML of terms of use link or null if it shouldn't be displayed
 	 * Note: This is called by a hook in the WikimediaMessages extension.
 	 *
@@ -60,8 +120,7 @@ class MobileFrontendSkinHooks {
 	 * @return array Associative array containing the license text and link
 	 */
 	public static function getLicense( $context, array $attribs = [] ) {
-		$services = MediaWikiServices::getInstance();
-		$config = $services->getService( 'MobileFrontend.Config' );
+		$config = MediaWikiServices::getInstance()->getService( 'MobileFrontend.Config' );
 		$rightsPage = $config->get( 'RightsPage' );
 		$rightsUrl = $config->get( 'RightsUrl' );
 		$rightsText = $config->get( 'RightsText' );
@@ -90,7 +149,7 @@ class MobileFrontendSkinHooks {
 			}
 			if ( $rightsPage ) {
 				$title = Title::newFromText( $rightsPage );
-				$linkRenderer = $services->getLinkRenderer();
+				$linkRenderer = MediaWikiServices::getInstance()->getLinkRenderer();
 				$link = $linkRenderer->makeKnownLink( $title, new HtmlArmor( $rightsText ), $attribs );
 			} elseif ( $rightsUrl ) {
 				$link = Linker::makeExternalLink( $rightsUrl, $rightsText, true, '', $attribs );
@@ -103,8 +162,7 @@ class MobileFrontendSkinHooks {
 
 		// Allow other extensions (for example, WikimediaMessages) to override
 		$msg = 'mobile-frontend-copyright';
-		$hookContainer = $services->getHookContainer();
-		$hookContainer->run( 'MobileLicenseLink', [ &$link, $context, $attribs, &$msg ] );
+		Hooks::run( 'MobileLicenseLink', [ &$link, $context, $attribs, &$msg ] );
 
 		return [
 			'msg' => $msg,
@@ -114,17 +172,70 @@ class MobileFrontendSkinHooks {
 	}
 
 	/**
+	 * Prepares the footer for the skins serving the desktop and mobile sites.
 	 * @param Skin $skin
-	 * @param MobileContext $context
-	 * @return string representing the desktop link.
+	 * @param QuickTemplate $tpl
 	 */
-	public static function getDesktopViewLink( Skin $skin, MobileContext $context ) {
-		$url = $skin->getOutput()->getProperty( 'desktopUrl' );
+	public static function prepareFooter( Skin $skin, QuickTemplate $tpl ) {
+		$title = $skin->getTitle();
 		$req = $skin->getRequest();
+		$context = MediaWikiServices::getInstance()->getService( 'MobileFrontend.Context' );
+
+		// Certain pages might be blacklisted and not have a mobile equivalent.
+		if ( !$context->isBlacklistedPage() ) {
+			if ( $context->shouldDisplayMobileView() ) {
+				self::mobileFooter( $skin, $tpl, $context, $title, $req );
+			} else {
+				self::desktopFooter( $skin, $tpl, $context, $title, $req );
+			}
+		}
+	}
+
+	/**
+	 * Appends a mobile view link to the desktop footer
+	 * @param Skin $skin
+	 * @param QuickTemplate $tpl
+	 * @param MobileContext $context
+	 * @param Title $title Page title
+	 * @param WebRequest $req
+	 */
+	public static function desktopFooter( Skin $skin, QuickTemplate $tpl, MobileContext $context,
+		Title $title, WebRequest $req
+	) {
+		$footerlinks = $tpl->data['footerlinks'];
+		$args = $req->getQueryValues();
+		// avoid title being set twice
+		unset( $args['title'], $args['useformat'] );
+		$args['mobileaction'] = 'toggle_view_mobile';
+
+		$mobileViewUrl = $title->getFullURL( $args );
+		$mobileViewUrl = $context->getMobileUrl( $mobileViewUrl );
+
+		$link = Html::element( 'a',
+			[ 'href' => $mobileViewUrl, 'class' => 'noprint stopMobileRedirectToggle' ],
+			$context->msg( 'mobile-frontend-view' )->text()
+		);
+		$tpl->set( 'mobileview', $link );
+		$footerlinks['places'][] = 'mobileview';
+		$tpl->set( 'footerlinks', $footerlinks );
+	}
+
+	/**
+	 * Prepares links used in the mobile footer
+	 * @param Skin $skin
+	 * @param QuickTemplate $tpl
+	 * @param MobileContext $context
+	 * @param Title $title Page title
+	 * @param WebRequest $req
+	 * @return QuickTemplate
+	 */
+	protected static function mobileFooter( Skin $skin, QuickTemplate $tpl, MobileContext $context,
+		Title $title, WebRequest $req
+	) {
+		$url = $skin->getOutput()->getProperty( 'desktopUrl' );
 		if ( $url ) {
 			$url = wfAppendQuery( $url, 'mobileaction=toggle_view_desktop' );
 		} else {
-			$title = $skin->getTitle();
 			$url = $title->getLocalURL(
 				$req->appendQueryValue( 'mobileaction', 'toggle_view_desktop' )
 			);
@@ -132,43 +243,35 @@ class MobileFrontendSkinHooks {
 		$desktopUrl = $context->getDesktopUrl( wfExpandUrl( $url, PROTO_RELATIVE ) );
 
 		$desktop = $context->msg( 'mobile-frontend-view-desktop' )->text();
-		return Html::element( 'a',
+		$desktopToggler = Html::element( 'a',
 			[ 'id' => 'mw-mf-display-toggle', 'href' => $desktopUrl ], $desktop );
-	}
 
-	/**
-	 * @param Skin $skin
-	 * @param MobileContext $context
-	 * @return string representing the mobile link.
-	 */
-	public static function getMobileViewLink( Skin $skin, MobileContext $context ) {
-		$req = $skin->getRequest();
-		$args = $req->getQueryValues();
-		// avoid title being set twice
-		unset( $args['title'], $args['useformat'] );
-		$args['mobileaction'] = 'toggle_view_mobile';
-		$title = $skin->getTitle();
-		$mobileViewUrl = $title->getFullURL( $args );
-		$mobileViewUrl = $context->getMobileUrl( $mobileViewUrl );
-
-		return Html::element( 'a',
-			[ 'href' => $mobileViewUrl, 'class' => 'noprint stopMobileRedirectToggle' ],
-			$context->msg( 'mobile-frontend-view' )->text()
-		);
-	}
-
-	/**
-	 * Generate the licensing text displayed in the footer of each page.
-	 * See Skin::getCopyright for desktop equivalent.
-	 * @param Skin $skin
-	 * @return string
-	 */
-	public static function getLicenseText( $skin ) {
+		// Generate the licensing text displayed in the footer of each page.
+		// See Skin::getCopyright for desktop equivalent.
 		$license = self::getLicense( 'footer' );
 		if ( isset( $license['link'] ) && $license['link'] ) {
-			return $skin->msg( $license['msg'] )->rawParams( $license['link'] )->text();
+			$licenseText = $skin->msg( $license['msg'] )->rawParams( $license['link'] )->text();
 		} else {
-			return '';
+			$licenseText = '';
 		}
+
+		// Enable extensions to add links to footer in Mobile view, too - bug 66350
+		Hooks::run( 'MobileSiteOutputPageBeforeExec', [ &$skin, &$tpl ] );
+
+		$tpl->set( 'desktop-toggle', $desktopToggler );
+		$tpl->set( 'mobile-license', $licenseText );
+		$tpl->set( 'privacy', $skin->footerLink( 'mobile-frontend-privacy-link-text', 'privacypage' ) );
+		$tpl->set( 'terms-use', self::getTermsLink( $skin ) );
+
+		$places = [
+			'terms-use',
+			'privacy',
+			'desktop-toggle'
+		];
+		$footerlinks = [
+			'places' => $places,
+		];
+		$tpl->set( 'footerlinks', $footerlinks );
+		return $tpl;
 	}
 }

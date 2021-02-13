@@ -4,7 +4,7 @@
  * Provide the Special page "Nearby" with location based articles
  */
 class SpecialNearby extends MobileSpecialPage {
-	/** @var bool Does this special page has a desktop version? */
+	/** @var boolean $hasDesktopVersion Does this special page has a desktop version? */
 	protected $hasDesktopVersion = true;
 
 	public function __construct() {

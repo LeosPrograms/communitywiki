@@ -3,8 +3,6 @@
 *.kate-swp
 .*.swp
 .idea/
-/.storybook/mediawiki-skins-MinervaNeue/
-/.storybook/resolve-less-imports/
 node_modules/
 tmp/
 /docs/js/
@@ -23,4 +21,3 @@ resources/dist/
 /.nyc_output/
 /tests/selenium/log
 /.eslintcache
-.vscode

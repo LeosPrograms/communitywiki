@@ -1,5 +1,4 @@
-let sandbox, extendSearchParams;
-const
+var sandbox, extendSearchParams,
 	jQuery = require( '../utils/jQuery' ),
 	mediaWiki = require( '../utils/mw' ),
 	dom = require( '../utils/dom' ),
@@ -33,7 +32,7 @@ QUnit.module( 'MobileFrontend extendSearchParams.js', {
 } );
 
 QUnit.test( 'it throws if the feature is invalid', function ( assert ) {
-	const expectedError = new Error( '"foo" isn\'t a feature that shows Wikibase descriptions.' );
+	var expectedError = new Error( '"foo" isn\'t a feature that shows Wikibase descriptions.' );
 
 	assert.throws( function () {
 		extendSearchParams( 'foo', {} );
@@ -41,7 +40,7 @@ QUnit.test( 'it throws if the feature is invalid', function ( assert ) {
 } );
 
 QUnit.test( 'it extends the parameters', function ( assert ) {
-	const params = extendSearchParams( 'search', {
+	var params = extendSearchParams( 'search', {
 			qux: 'quux',
 			prop: [ 'corge' ]
 		} ),
@@ -57,7 +56,7 @@ QUnit.test( 'it extends the parameters', function ( assert ) {
 } );
 
 QUnit.test( 'it doesn\'t include Wikibase-specific parameters if the feature is disabled', function ( assert ) {
-	const params = extendSearchParams( 'nearby', {
+	var params = extendSearchParams( 'nearby', {
 		qux: 'quux'
 	} );
 
@@ -66,7 +65,7 @@ QUnit.test( 'it doesn\'t include Wikibase-specific parameters if the feature is 
 } );
 
 QUnit.test( 'it adds the MobileFrontend configuration to given terms types', function ( assert ) {
-	const params = extendSearchParams( 'search', {
+	var params = extendSearchParams( 'search', {
 		wbptterms: 'grault'
 	} );
 
@@ -78,7 +77,7 @@ QUnit.test( 'it adds the MobileFrontend configuration to given terms types', fun
 } );
 
 QUnit.test( 'it prioritizes MobileFrontend configuration', function ( assert ) {
-	const params = extendSearchParams( 'search', {
+	var params = extendSearchParams( 'search', {
 			foo: 'quux'
 		} ),
 		expectedParams = {
@@ -96,7 +95,7 @@ QUnit.test( 'it prioritizes MobileFrontend configuration', function ( assert ) {
 } );
 
 QUnit.test( 'it is variadic', function ( assert ) {
-	const params = extendSearchParams(
+	var params = extendSearchParams(
 			'search',
 			{
 				baz: 'qux'

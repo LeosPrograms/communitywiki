@@ -1,3 +1,5 @@
+/* eslint-disable one-var */
+
 const dom = require( '../../utils/dom' );
 const jQuery = require( '../../utils/jQuery' );
 const mw = require( '../../utils/mw' );

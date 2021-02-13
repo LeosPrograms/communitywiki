@@ -1,9 +1,8 @@
-let
-	ModuleLoader;
-const
+var
+	ModuleLoader,
 	oo = require( '../utils/oo' ),
 	sinon = require( 'sinon' );
-/** @type {sinon.SinonSandbox} */ let sandbox;
+/** @type {sinon.SinonSandbox} */ var sandbox; // eslint-disable-line one-var
 
 QUnit.module( 'MobileFrontend ModuleLoader', {
 	beforeEach: function () {
@@ -32,7 +31,7 @@ QUnit.test( '#require', function ( assert ) {
 } );
 
 QUnit.test( '#define', function ( assert ) {
-	const loader = this.loader;
+	var loader = this.loader;
 	loader.define( 'foo', 1 );
 	loader.define( 'bar', 5 );
 	assert.throws( function () {

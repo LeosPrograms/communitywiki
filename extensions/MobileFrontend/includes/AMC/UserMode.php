@@ -1,29 +1,26 @@
 <?php
 
-namespace MobileFrontend\Amc;
+namespace MobileFrontend\AMC;
 
-use DeferredUpdates;
+use \DeferredUpdates;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\User\UserOptionsLookup;
-use MediaWiki\User\UserOptionsManager;
 use MobileFrontend\Features\IUserMode;
-use MobileFrontend\Features\IUserSelectableMode;
-use RuntimeException;
+use \RuntimeException;
 use Wikimedia\Assert\Assert;
 
-class UserMode implements IUserMode, IUserSelectableMode {
+class UserMode implements IUserMode {
 
-	public const USER_OPTION_MODE_AMC = 'mf_amc_optin';
+	const USER_OPTION_MODE_AMC = 'mf_amc_optin';
 
 	/**
 	 * Value in the user options when AMC is enabled
 	 */
-	public const OPTION_ENABLED = '1';
+	const OPTION_ENABLED = '1';
 
 	/**
 	 * Value in the user options when AMC is disabled (default state)
 	 */
-	public const OPTION_DISABLED = '0';
+	const OPTION_DISABLED = '0';
 
 	/**
 	 * @var \User
@@ -35,32 +32,13 @@ class UserMode implements IUserMode, IUserSelectableMode {
 	private $amc;
 
 	/**
-	 * @var UserOptionsLookup
-	 */
-	private $userOptionsLookup;
-
-	/**
-	 * @var UserOptionsManager
-	 */
-	private $userOptionsManager;
-
-	/**
 	 * @param Manager $amcManager
 	 * @param \User $user
-	 * @param UserOptionsLookup $userOptionsLookup
-	 * @param UserOptionsManager $userOptionsManager
 	 * @throws \RuntimeException When AMC mode is not available
 	 */
-	public function __construct(
-		Manager $amcManager,
-		\User $user,
-		UserOptionsLookup $userOptionsLookup,
-		UserOptionsManager $userOptionsManager
-	) {
+	public function __construct( Manager $amcManager, \User $user ) {
 		$this->amc = $amcManager;
 		$this->user = $user;
-		$this->userOptionsLookup = $userOptionsLookup;
-		$this->userOptionsManager = $userOptionsManager;
 	}
 
 	/**
@@ -75,13 +53,9 @@ class UserMode implements IUserMode, IUserSelectableMode {
 	 * @return bool
 	 */
 	public function isEnabled() {
-		$userOption = $this->userOptionsLookup->getOption(
-			$this->user,
-			self::USER_OPTION_MODE_AMC,
-			self::OPTION_DISABLED
-		);
 		return $this->amc->isAvailable() &&
-			 $userOption === self::OPTION_ENABLED;
+			$this->user->getOption( self::USER_OPTION_MODE_AMC,
+				self::OPTION_DISABLED ) === self::OPTION_ENABLED;
 	}
 
 	/**
@@ -95,14 +69,9 @@ class UserMode implements IUserMode, IUserSelectableMode {
 		}
 		Assert::parameterType( 'boolean', $isEnabled, 'isEnabled' );
 		$user = $this->user;
-		$userOptionsManager = $this->userOptionsManager;
 
-		$userOptionsManager->setOption(
-			$user,
-			self::USER_OPTION_MODE_AMC,
-			$toSet
-		);
-		DeferredUpdates::addCallableUpdate( function () use ( $user, $toSet, $userOptionsManager ) {
+		$user->setOption( self::USER_OPTION_MODE_AMC, $toSet );
+		DeferredUpdates::addCallableUpdate( function () use ( $user, $toSet ) {
 			if ( wfReadOnly() ) {
 				return;
 			}
@@ -113,11 +82,7 @@ class UserMode implements IUserMode, IUserSelectableMode {
 					"User not found, so can't enable AMC mode"
 				);
 			}
-			$userOptionsManager->setOption(
-				$latestUser,
-				self::USER_OPTION_MODE_AMC,
-				$toSet
-			);
+			$latestUser->setOption( self::USER_OPTION_MODE_AMC, $toSet );
 			$latestUser->saveSettings();
 		}, DeferredUpdates::PRESEND );
 	}
@@ -127,15 +92,12 @@ class UserMode implements IUserMode, IUserSelectableMode {
 	 * NamedConstructor used by hooks system
 	 *
 	 * @param \User $user
-	 * @return self
+	 * @return UserMode
 	 */
 	public static function newForUser( \User $user ) {
-		$services = MediaWikiServices::getInstance();
-		return new self(
-			$services->getService( 'MobileFrontend.AMC.Manager' ),
-			$user,
-			$services->getUserOptionsLookup(),
-			$services->getUserOptionsManager()
+		return new UserMode(
+			MediaWikiServices::getInstance()->getService( 'MobileFrontend.AMC.Manager' ),
+			$user
 		);
 	}
 

@@ -3,20 +3,20 @@ var
 	util = require( '../mobile.startup/util' ),
 	View = require( '../mobile.startup/View' ),
 	icons = require( '../mobile.startup/icons' ),
-	$spinner = icons.spinner().$el,
+	spinner = icons.spinner().$el,
 	ScrollEndEventEmitter = require( '../mobile.startup/ScrollEndEventEmitter' ),
 	CategoryGateway = require( './CategoryGateway' );
 
 /**
  * Displays the list of categories for a page in two tabs
  * TODO: Break this into Tab and CategoryList components for better reuse.
- *
  * @class CategoryTabs
  * @extends View
  * @uses CategoryGateway
  *
  * @param {Object} options Configuration options
  * @param {string} options.title of page to obtain categories for
+ * @param {string} options.subheading for explaining the list of categories.
  * @param {mw.Api} options.api for use with CategoryGateway
  * @param {OO.EventEmitter} options.eventBus Object used to listen for category-added
  * and scroll:throttled events
@@ -30,12 +30,7 @@ function CategoryTabs( options ) {
 		this,
 		util.extend(
 			true,
-			{
-				events: { 'click .catlink': 'onCatlinkClick' },
-				normalcatlink: mw.msg( 'mobile-frontend-categories-normal' ),
-				hiddencatlink: mw.msg( 'mobile-frontend-categories-hidden' ),
-				subheading: mw.msg( 'mobile-frontend-categories-subheading' )
-			},
+			{ events: { 'click .catlink': 'onCatlinkClick' } },
 			options
 		)
 	);
@@ -43,6 +38,16 @@ function CategoryTabs( options ) {
 
 mfExtend( CategoryTabs, View, {
 	isTemplateMode: true,
+	/**
+	 * @memberof CategoryTabs
+	 * @instance
+	 * @mixes View#defaults
+	 * @property {Object} defaults Default options hash.
+	 */
+	defaults: {
+		normalcatlink: mw.msg( 'mobile-frontend-categories-normal' ),
+		hiddencatlink: mw.msg( 'mobile-frontend-categories-hidden' )
+	},
 	/**
 	 * @inheritdoc
 	 * @memberof CategoryTabs
@@ -83,7 +88,7 @@ mfExtend( CategoryTabs, View, {
 	 */
 	postRender: function () {
 		View.prototype.postRender.apply( this );
-		this.$el.append( $spinner );
+		this.$el.append( spinner );
 		this._loadCategories();
 	},
 
@@ -107,7 +112,6 @@ mfExtend( CategoryTabs, View, {
 	 * Get a list of categories the page belongs to and re-renders the overlay content
 	 * FIXME: CategoryTabs should be dumb and solely focus on rendering. This should
 	 * be refactored out at the earliest opportunity.
-	 *
 	 * @memberof CategoryTabs
 	 * @instance
 	 */
@@ -152,8 +156,6 @@ mfExtend( CategoryTabs, View, {
 
 				if ( $normalCatlist.length === 0 && $normalCatlist.length === 0 ) {
 					self.$el.find( '.content-header' ).text( mw.msg( 'mobile-frontend-categories-nocat' ) );
-				// FIXME: This condition is always false
-				// eslint-disable-next-line no-dupe-else-if
 				} else if ( $normalCatlist.length === 0 && $normalCatlist.length > 0 ) {
 					this._changeView();
 				}
@@ -167,7 +169,6 @@ mfExtend( CategoryTabs, View, {
 
 	/**
 	 * Handles a click on one of the tabs to change the viewable categories
-	 *
 	 * @memberof CategoryTabs
 	 * @instance
 	 * @param {jQuery.Event} ev The Event object triggered this handler
@@ -182,7 +183,6 @@ mfExtend( CategoryTabs, View, {
 
 	/**
 	 * Changes the view from hidden categories to content-based categories and vice-versa
-	 *
 	 * @memberof CategoryTabs
 	 * @instance
 	 */

@@ -4,7 +4,6 @@ var util = require( './util' ),
 
 /**
  * Creates a header
- *
  * @param {string|View} headingOrView (HTML allowed)
  * @param {View[]} headerActions
  * @param {View} [headerCancel] defaults to cancel button
@@ -12,6 +11,7 @@ var util = require( './util' ),
  * @return {Element}
  */
 function makeHeader( headingOrView, headerActions, headerCancel, additionalClassNames ) {
+	let $el;
 	const heading = typeof headingOrView === 'string' ? headingOrView : undefined,
 		templateData = {
 			hasActions: headerActions && headerActions.length,
@@ -30,7 +30,7 @@ function makeHeader( headingOrView, headerActions, headerCancel, additionalClass
 </div>
 		` ).render( templateData );
 	headerCancel = headerCancel || icons.cancel();
-	const $el = util.parseHTML( html );
+	$el = util.parseHTML( html );
 	// Truncate any text inside in the overlay header.
 	$el.find( 'h2 span' ).addClass( 'truncated-text' );
 	$el.find( '.header-cancel li' ).append(
@@ -51,7 +51,6 @@ function makeHeader( headingOrView, headerActions, headerCancel, additionalClass
 
 /**
  * Creates a header with a h2 heading
- *
  * @param {string} heading (HTML allowed)
  * @param {View[]} headerActions
  * @param {View} [headerCancel] defaults to cancel button
@@ -65,7 +64,6 @@ function header( heading, headerActions, headerCancel, additionalClassNames ) {
 
 /**
  * Creates a header with a form
- *
  * @param {string|View} formHTMLOrView of the header
  * @param {View[]} headerActions
  * @param {View} [headerCancel] defaults to cancel button
@@ -78,7 +76,6 @@ function formHeader( formHTMLOrView, headerActions, headerCancel, additionalClas
 
 /**
  * Creates a header with a form
- *
  * @param {string} heading of the header
  * @param {string} additionalClassNames of the header
  * @return {Element}
@@ -100,7 +97,6 @@ function saveHeader( heading, additionalClassNames ) {
 }
 /**
  * Creates a header with a form
- *
  * @param {string} heading of the header
  * @param {string} additionalClassNames of the header
  * @return {Element}

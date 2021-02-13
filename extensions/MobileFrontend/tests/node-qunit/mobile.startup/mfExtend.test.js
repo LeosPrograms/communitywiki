@@ -1,9 +1,8 @@
-let mfExtend;
-const
+var mfExtend,
 	sinon = require( 'sinon' ),
 	oo = require( '../utils/oo' );
 
-/** @type {sinon.SinonSandbox} */ let sandbox;
+/** @type {sinon.SinonSandbox} */ var sandbox; // eslint-disable-line one-var
 
 QUnit.module( 'MobileFrontend mfExtend.test.js', {
 	beforeEach: function () {
@@ -22,7 +21,8 @@ QUnit.test( 'mfExtend() - extending from constructor', function ( assert ) {
 } );
 
 QUnit.test( 'mfExtend() - extending from object', function ( assert ) {
-	const testPrototype = new TestPrototype();
+	var testPrototype = new TestPrototype(),
+		testChild;
 	function TestChild() {}
 	function TestPrototype() {
 		this.protoMethod = function () {
@@ -30,11 +30,12 @@ QUnit.test( 'mfExtend() - extending from object', function ( assert ) {
 		};
 	}
 	mfExtend( TestChild, testPrototype );
-	const testChild = new TestChild();
+	testChild = new TestChild();
 	assert.strictEqual( testChild.protoMethod(), true );
 } );
 
 QUnit.test( 'mfExtend() - extending from constructor with overrides', function ( assert ) {
+	var testChild;
 	function TestChild() {}
 	function TestPrototype() {
 		this.protoMethod = function () {
@@ -46,6 +47,6 @@ QUnit.test( 'mfExtend() - extending from constructor with overrides', function (
 			return false;
 		}
 	} );
-	const testChild = new TestChild();
+	testChild = new TestChild();
 	assert.strictEqual( testChild.protoMethod(), false );
 } );

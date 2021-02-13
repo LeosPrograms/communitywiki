@@ -1,7 +1,7 @@
 <?php
 
-use MediaWiki\Http\HttpRequestFactory;
 use MobileFrontend\ContentProviders\McsContentProvider;
+use MediaWiki\Http\HttpRequestFactory;
 
 /**
  * @group MobileFrontend
@@ -9,7 +9,7 @@ use MobileFrontend\ContentProviders\McsContentProvider;
  * @covers ::__construct
  */
 class McsContentProviderTest extends MediaWikiTestCase {
-	private const BASE_URL = '/w/api.php';
+	const BASE_URL = '/w/api.php';
 
 	/**
 	 * @param string $baseUrl
@@ -20,9 +20,6 @@ class McsContentProviderTest extends MediaWikiTestCase {
 		$out = new OutputPage( new RequestContext() );
 		if ( $title ) {
 			$out->setTitle( $title );
-		} else {
-			// make sure RequestContext doesn't pick up a title from the global
-			$this->setMwGlobals( 'wgTitle', null );
 		}
 		return new McsContentProvider( $baseUrl, $out );
 	}
@@ -32,8 +29,6 @@ class McsContentProviderTest extends MediaWikiTestCase {
 	}
 
 	/**
-	 * @param string $url
-	 * @param string $rawResponse
 	 * @return HttpRequestFactory
 	 */
 	private function mockHTTPFactory( $url, $rawResponse ) {

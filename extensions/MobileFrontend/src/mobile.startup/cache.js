@@ -16,7 +16,6 @@ function MemoryCache() {
 
 /**
  * Retrieve a cached value from a key
- *
  * @memberof MemoryCache
  * @instance
  * @param {string} key
@@ -28,7 +27,6 @@ MemoryCache.prototype.get = function ( key ) {
 
 /**
  * Cache a value by key
- *
  * @memberof MemoryCache
  * @instance
  * @param {string} key
@@ -47,7 +45,6 @@ function NoCache() { }
 
 /**
  * NoOp
- *
  * @memberof NoCache
  * @instance
  */
@@ -55,7 +52,6 @@ NoCache.prototype.get = function () { };
 
 /**
  * NoOp
- *
  * @memberof NoCache
  * @instance
  */

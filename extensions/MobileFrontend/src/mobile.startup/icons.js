@@ -23,7 +23,6 @@ module.exports = {
 	 *
 	 * The icon should be used to inform the user that the front-end is
 	 * communicating with the back-end.
-	 *
 	 * @memberof icons
 	 * @instance
 	 * @return {Icon}
@@ -31,7 +30,7 @@ module.exports = {
 	back: function () {
 		return new Icon( {
 			tagName: 'button',
-			name: 'previous-base20',
+			name: 'arrowPrevious-base20',
 			additionalClassNames: 'back',
 			label: mw.msg( 'mobile-frontend-overlay-close' )
 		} );
@@ -41,7 +40,6 @@ module.exports = {
 	 *
 	 * The icon should be used to inform the user that the front-end is
 	 * communicating with the back-end.
-	 *
 	 * @memberof icons
 	 * @instance
 	 * @param {string} [variant] defaults to `base20`.
@@ -62,7 +60,6 @@ module.exports = {
 	 *
 	 * The icon should be used to inform the user that the front-end is
 	 * communicating with the back-end.
-	 *
 	 * @memberof icons
 	 * @instance
 	 * @param {Object} [options] See `Icon` for more details
@@ -97,29 +94,27 @@ module.exports = {
 	 *
 	 * @memberof icons
 	 * @instance
-	 * @param {Object} props
 	 * @return {Icon}
 	 */
-	watchIcon: function ( props ) {
-		return new this.Icon( util.extend( props, {
+	watchIcon: function () {
+		return new this.Icon( {
 			name: 'star-base20',
 			glyphPrefix: 'wikimedia',
 			additionalClassNames: 'watch-this-article'
-		} ) );
+		} );
 	},
 	/**
 	 * Gets a filled watch star icon.
 	 *
 	 * @memberof icons
 	 * @instance
-	 * @param {Object} props
 	 * @return {Icon}
 	 */
-	watchedIcon: function ( props ) {
-		return new this.Icon( util.extend( props, {
+	watchedIcon: function () {
+		return new this.Icon( {
 			name: 'unStar-progressive',
 			glyphPrefix: 'wikimedia',
 			additionalClassNames: 'watch-this-article watched'
-		} ) );
+		} );
 	}
 };

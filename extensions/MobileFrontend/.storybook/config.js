@@ -4,7 +4,6 @@ import jQuery from 'jquery';
 import mustache from 'mustache';
 import './styles.less';
 import en from '../i18n/en.json';
-import mockMediaWiki from '../node_modules/@wikimedia/mw-node-qunit/src/mockMediaWiki.js';
 
 global.OO = OO;
 global.OO.ui = {
@@ -16,7 +15,7 @@ global.OO.ui = {
 };
 global.$ = jQuery;
 global.Mustache = mustache;
-global.mw = mockMediaWiki();
+global.mw = require( '../tests/node-qunit/utils/mockMediaWiki' )();
 
 global.mw.Title = function ( title ) {
   return global.mw.Title.newFromText( title );

@@ -1,6 +1,5 @@
-let sandbox, page, gateway, pageParser,
-	references, Drawer, Page, PageHTMLParser;
-const
+var sandbox, page, gateway, pageParser,
+	references, Drawer, Page, PageHTMLParser,
 	sinon = require( 'sinon' ),
 	oo = require( '../../utils/oo' ),
 	dom = require( '../../utils/dom' ),
@@ -35,7 +34,7 @@ QUnit.module( 'MobileFrontend: references', {
 } );
 
 QUnit.test( 'Bad reference not shown', function ( assert ) {
-	const promise = util.Deferred().reject( ReferencesGateway.ERROR_NOT_EXIST ).promise(),
+	var promise = util.Deferred().reject( ReferencesGateway.ERROR_NOT_EXIST ).promise(),
 		showSpy = sandbox.spy( Drawer.prototype, 'show' );
 
 	sandbox.stub( gateway, 'getReference' ).returns( promise );
@@ -47,30 +46,34 @@ QUnit.test( 'Bad reference not shown', function ( assert ) {
 } );
 
 QUnit.test( 'Good reference causes render', function ( assert ) {
-	const promise = util.Deferred().resolve( {
+	var promise = util.Deferred().resolve( {
 			text: 'I am a reference'
 		} ).promise(),
 		renderSpy = sandbox.spy( Drawer.prototype, 'render' ),
+		showSpy = sandbox.spy( Drawer.prototype, 'show' ),
 		done = assert.async();
 
 	sandbox.stub( gateway, 'getReference' ).returns( promise );
 	references.showReference( '#cite_note-good', page, '1', pageParser, gateway );
 
 	return promise.then( function () {
+		assert.strictEqual( showSpy.callCount, 1, 'Show is called.' );
 		assert.strictEqual( renderSpy.callCount, 1, 'Render is called.' );
 		done();
 	} );
 } );
 
 QUnit.test( 'Reference failure renders error in drawer', function ( assert ) {
-	const promise = util.Deferred().reject( ReferencesGateway.ERROR_OTHER ).promise(),
+	var promise = util.Deferred().reject( ReferencesGateway.ERROR_OTHER ).promise(),
 		renderSpy = sandbox.spy( Drawer.prototype, 'render' ),
+		showSpy = sandbox.spy( Drawer.prototype, 'show' ),
 		done = assert.async();
 
 	sandbox.stub( gateway, 'getReference' ).returns( promise );
 	references.showReference( '#cite_note-bad', page, '1', pageParser, gateway );
 
 	return promise.catch( function () {
+		assert.strictEqual( showSpy.callCount, 1, 'Show is called.' );
 		assert.strictEqual( renderSpy.callCount, 1, 'Render is called.' );
 		done();
 	} );
@@ -78,21 +81,19 @@ QUnit.test( 'Reference failure renders error in drawer', function ( assert ) {
 
 QUnit.test( 'makeOnNestedReferenceClickHandler runs when associated with link', function ( assert ) {
 	const spy = sandbox.spy(),
-		sup = document.createElement( 'sup' ),
 		anchor = document.createElement( 'a' ),
 		eventWithAnchor = {
-			currentTarget: sup
+			target: anchor
 		},
 		eventWithDiv = {
-			currentTarget: document.createElement( 'div' )
+			target: document.createElement( 'div' )
 		},
 		callback = references.test.makeOnNestedReferenceClickHandler( spy );
 
-	sup.appendChild( anchor );
 	anchor.setAttribute( 'href', 'https://wikipedia.org' );
 	anchor.textContent = 'hello';
 	callback( eventWithAnchor );
-	assert.strictEqual( spy.calledOnce, true, 'The spy is called with a sup' );
+	assert.strictEqual( spy.calledOnce, true, 'The spy is called with an anchor' );
 	callback( eventWithDiv );
 	assert.strictEqual( spy.calledOnce, true, 'The spy was not called with a div' );
 } );

@@ -24,7 +24,7 @@ class DeviceDetectorService implements DeviceDetector {
 	 * occur.
 	 *
 	 * @param Config $config containing values for MFAutodetectMobileView and MFMobileHeader
-	 * @return self
+	 * @return DeviceDetectorService
 	 */
 	public static function factory( Config $config ) {
 		$children = [];

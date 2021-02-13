@@ -1,4 +1,4 @@
-/* global $ */
+/* global Promise, $ */
 import { storiesOf } from '@storybook/html';
 import promisedView from '../src/mobile.startup/promisedView';
 import View from '../src/mobile.startup/View';

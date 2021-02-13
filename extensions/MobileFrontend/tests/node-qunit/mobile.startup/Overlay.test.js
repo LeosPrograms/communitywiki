@@ -1,4 +1,4 @@
-const
+var
 	sinon = require( 'sinon' ),
 	jQuery = require( '../utils/jQuery' ),
 	mfExtend = require( '../../../src/mobile.startup/mfExtend' ),
@@ -6,8 +6,7 @@ const
 	mediaWiki = require( '../utils/mw' ),
 	mustache = require( '../utils/mustache' ),
 	oo = require( '../utils/oo' ),
-	util = require( '../../../src/mobile.startup/util' );
-let
+	util = require( '../../../src/mobile.startup/util' ),
 	Overlay,
 	sandbox;
 
@@ -42,17 +41,18 @@ QUnit.module( 'MobileFrontend: Overlay.js', {
 } );
 
 QUnit.test( 'Simple overlay', function ( assert ) {
-	const overlay = new Overlay( {
-		heading: '<h2>Overlay Title</h2>'
-	} );
+	var overlay = new Overlay( {
+			heading: '<h2>Overlay Title</h2>'
+		} ),
+		headingNode;
 
-	const $headingNode = overlay.$el.find( 'h2:contains("Overlay Title")' );
+	headingNode = overlay.$el.find( 'h2:contains("Overlay Title")' );
 
-	assert.strictEqual( $headingNode.length, 1 );
+	assert.strictEqual( headingNode.length, 1 );
 } );
 
 QUnit.test( '#make', function ( assert ) {
-	const overlay = Overlay.make( {
+	var overlay = Overlay.make( {
 		heading: 'Fresh from factory'
 	}, new Overlay( {
 		className: 'overlay-child',
@@ -73,6 +73,8 @@ QUnit.test( '#make', function ( assert ) {
 } );
 
 QUnit.test( 'HTML overlay', function ( assert ) {
+	var overlay;
+
 	function TestOverlay() {
 		Overlay.apply( this, arguments );
 	}
@@ -82,7 +84,7 @@ QUnit.test( 'HTML overlay', function ( assert ) {
 			content: util.template( '<div class="content">YO</div>' )
 		} )
 	} );
-	const overlay = new TestOverlay( {
+	overlay = new TestOverlay( {
 		heading: 'Awesome'
 	} );
 
@@ -91,7 +93,7 @@ QUnit.test( 'HTML overlay', function ( assert ) {
 } );
 
 QUnit.test( 'headerActions property', function ( assert ) {
-	const overlays = [
+	var overlays = [
 		new Overlay( {} ),
 		new Overlay( {
 			headerActions: [
@@ -106,7 +108,7 @@ QUnit.test( 'headerActions property', function ( assert ) {
 } );
 
 QUnit.test( 'onBeforeExit', function ( assert ) {
-	const spies = [],
+	var spies = [],
 		overlays = [
 			new Overlay( {} ),
 			new Overlay( {
@@ -128,7 +130,7 @@ QUnit.test( 'onBeforeExit', function ( assert ) {
 } );
 
 QUnit.test( 'Close overlay', function ( assert ) {
-	const overlay = new Overlay( {
+	var overlay = new Overlay( {
 		heading: '<h2>Title</h2>',
 		content: 'Text'
 	} );

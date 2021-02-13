@@ -1,5 +1,3 @@
-'use strict';
-
 const { iAmUsingTheMobileSite,
 		iAmOnPage } = require( '../features/step_definitions/common_steps' ),
 	Api = require( 'wdio-mediawiki/Api' ),
@@ -18,16 +16,16 @@ describe( 'User:<username>', () => {
 
 	before( () => {
 		const login = () => {
+			RunJobs.run();
 			UserLoginPage.login( username, password );
 		};
 
-		browser.deleteCookies();
-		browser.call( async () => {
-			const bot = await Api.bot();
-			await Api.createAccount( bot, username, password )
+		browser.deleteCookie();
+		browser.call( function () {
+			return Api.createAccount( username, password )
 				// in case of token error try again
-				.catch( async () => {
-					await Api.createAccount( bot, username, password )
+				.catch( () => {
+					return Api.createAccount( username, password )
 						.then( login )
 						.catch( () => {
 							assert.ok( false, 'Problem creating account for test (tried two times)' );
@@ -35,7 +33,6 @@ describe( 'User:<username>', () => {
 				} );
 		} );
 		login();
-		RunJobs.run();
 	} );
 
 	it( 'Check user page is editable', () => {

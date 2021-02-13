@@ -1,15 +1,15 @@
-const
+var
 	dom = require( '../utils/dom' ),
 	jQuery = require( '../utils/jQuery' ),
 	mw = require( '../utils/mw' ),
 	mustache = require( '../utils/mustache' ),
 	oo = require( '../utils/oo' ),
-	sinon = require( 'sinon' );
-let
 	// These both have heavy dependencies on jQuery so must be loaded later.
-	Page;
-
-/** @type {sinon.SinonSandbox} */ let sandbox;
+	Page,
+	sinon = require( 'sinon' );
+/* eslint-disable one-var */
+/** @type {sinon.SinonSandbox} */ var sandbox;
+/* eslint-enable one-var */
 
 QUnit.module( 'MobileFrontend Page.js', {
 	beforeEach: function () {
@@ -29,7 +29,7 @@ QUnit.module( 'MobileFrontend Page.js', {
 } );
 
 QUnit.test( '#isMainPage', function ( assert ) {
-	const p = new Page( {
+	var p = new Page( {
 			title: 'Main Page',
 			isMainPage: true
 		} ),

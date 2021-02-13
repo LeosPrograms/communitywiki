@@ -1,21 +1,18 @@
 <?php
 
 use MediaWiki\MediaWikiServices;
-use MobileFrontend\Models\MobileCollection;
-use MobileFrontend\Models\MobilePage;
 
 /**
  * The mobile version of the watchlist editing page.
  */
 class SpecialMobileEditWatchlist extends SpecialEditWatchlist {
-	/** @var string The name of the title to begin listing the watchlist from */
+	/** @var string $offsetTitle The name of the title to begin listing the watchlist from */
 	protected $offsetTitle;
 
 	public function __construct() {
 		$req = $this->getRequest();
 		$this->offsetTitle = $req->getVal( 'from', '' );
-		$watchStoreItem = MediaWikiServices::getInstance()->getWatchedItemStore();
-		parent::__construct( $watchStoreItem );
+		parent::__construct();
 	}
 
 	/**
@@ -48,7 +45,7 @@ class SpecialMobileEditWatchlist extends SpecialEditWatchlist {
 				'mobile-frontend-last-modified-date',
 				$this->getLanguage()->userDate( $timestamp, $user ),
 				$this->getLanguage()->userTime( $timestamp, $user )
-			)->text();
+			)->parse();
 			$edit = $mp->getLatestEdit();
 			$dataAttrs = [
 				'data-timestamp' => $edit['timestamp'],
@@ -88,8 +85,9 @@ class SpecialMobileEditWatchlist extends SpecialEditWatchlist {
 	/**
 	 * The main entry point for the page.
 	 *
-	 * @param string|null $mode Whether the user is viewing, editing, or clearing their
+	 * @param int $mode Whether the user is viewing, editing, or clearing their
 	 *  watchlist
+	 * @suppress PhanParamSignatureMismatch It is identical
 	 */
 	public function execute( $mode ) {
 		// Anons don't get a watchlist edit
@@ -142,7 +140,7 @@ class SpecialMobileEditWatchlist extends SpecialEditWatchlist {
 	 * Identify the next page to be shown
 	 *
 	 * @param array $pages
-	 * @return string|bool representing title of next page to show or
+	 * @return string|boolean representing title of next page to show or
 	 *  false if there isn't another page to show.
 	 */
 	private function getNextPage( $pages ) {
@@ -180,16 +178,17 @@ class SpecialMobileEditWatchlist extends SpecialEditWatchlist {
 
 		// Begin rendering of watchlist.
 		$watchlist = [ $ns => $allPages ];
-		$services = MediaWikiServices::getInstance();
-		$services->getHookContainer()->run(
-			'SpecialMobileEditWatchlist::images',
-			[ $this->getContext(), &$watchlist, &$images ]
+		Hooks::run( 'SpecialMobileEditWatchlist::images', [
+				$this->getContext(),
+				&$watchlist,
+				&$images
+			]
 		);
 
 		// create list of pages
 		$mobilePages = new MobileCollection();
 		$pageKeys = array_keys( $watchlist[$ns] );
-		$repoGroup = $services->getRepoGroup();
+		$repoGroup = MediaWikiServices::getInstance()->getRepoGroup();
 		foreach ( $pageKeys as $dbkey ) {
 			if ( isset( $images[$ns][$dbkey] ) ) {
 				$page = new MobilePage(
@@ -212,7 +211,7 @@ class SpecialMobileEditWatchlist extends SpecialEditWatchlist {
 			$qs = [ 'from' => $from ];
 			$html .= Html::element( 'a',
 				[
-					'class' => MobileUI::anchorClass( 'progressive', 'mw-mf-watchlist-more' ),
+					'class' => MobileUI::anchorClass( 'progressive', 'more' ),
 					'href' => SpecialPage::getTitleFor( 'EditWatchlist' )->getLocalURL( $qs ),
 				],
 				$this->msg( 'mobile-frontend-watchlist-more' )->text() );
@@ -235,12 +234,11 @@ class SpecialMobileEditWatchlist extends SpecialEditWatchlist {
 	 * @return string html representation of collection in watchlist view
 	 */
 	protected function getViewHtml( MobileCollection $collection ) {
-		$html = Html::openElement( 'ul', [ 'class' => 'content-unstyled page-list thumbs'
-			. ' page-summary-list mw-mf-watchlist-page-list' ] );
+		$html = '<ul class="watchlist content-unstyled page-list thumbs page-summary-list">';
 		foreach ( $collection as $mobilePage ) {
 			$html .= $this->getLineHtml( $mobilePage );
 		}
-		$html .= Html::closeElement( 'ul' );
+		$html .= '</ul>';
 		return $html;
 	}
 }

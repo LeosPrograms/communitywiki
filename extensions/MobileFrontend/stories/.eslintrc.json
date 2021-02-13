@@ -1,9 +1,11 @@
 {
-	"root": true,
 	"extends": [
 		"../src/.eslintrc.json"
 	],
 	"rules": {
-		"no-alert": "off"
+		"one-var": "off"
+	},
+	"globals": {
+		"Promise": "on"
 	}
 }

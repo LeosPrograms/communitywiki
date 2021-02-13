@@ -8,7 +8,6 @@ var
 
 /**
  * Mobile modal window
- *
  * @class Overlay
  * @extends View
  * @uses Icon
@@ -27,7 +26,7 @@ var
  *  headers created via the header util function. It is expected that only one of these
  *  should be visible. If undefined, headerActions and heading is used.
  * @param {Object} [props.footerAnchor] options for an optional Anchor
- *  that can appear in the footer
+	 *  that can appear in the footer
  * @param {Function} props.onBeforeExit allows a consumer to prevent exits in certain
  *  situations. This callback gets the following parameters:
  *  - 1) the exit function which should be run after the consumer has made their changes.
@@ -78,7 +77,6 @@ mfExtend( Overlay, View, {
 
 	/**
 	 * Shows the spinner right to the input field.
-	 *
 	 * @memberof Overlay
 	 * @instance
 	 * @method
@@ -89,7 +87,6 @@ mfExtend( Overlay, View, {
 
 	/**
 	 * Hide the spinner near to the input field.
-	 *
 	 * @memberof Overlay
 	 * @instance
 	 * @method
@@ -104,6 +101,7 @@ mfExtend( Overlay, View, {
 	 * @instance
 	 */
 	postRender: function () {
+		let headers;
 		const footerAnchor = this.options.footerAnchor;
 		this.$overlayContent = this.$el.find( '.overlay-content' );
 		if ( this.isIos ) {
@@ -112,7 +110,7 @@ mfExtend( Overlay, View, {
 		if ( footerAnchor ) {
 			this.$el.find( '.overlay-footer-container' ).append( new Anchor( footerAnchor ).$el );
 		}
-		const headers = this.options.headers || [
+		headers = this.options.headers || [
 			header(
 				this.options.heading,
 				this.options.headerActions
@@ -123,7 +121,6 @@ mfExtend( Overlay, View, {
 
 	/**
 	 * ClickBack event handler
-	 *
 	 * @memberof Overlay
 	 * @instance
 	 * @param {Object} ev event object
@@ -143,7 +140,6 @@ mfExtend( Overlay, View, {
 	},
 	/**
 	 * Attach overlay to current view and show it.
-	 *
 	 * @memberof Overlay
 	 * @instance
 	 */
@@ -168,7 +164,6 @@ mfExtend( Overlay, View, {
 	/**
 	 * Detach the overlay from the current view
 	 * Should not be overriden as soon to be deprecated.
-	 *
 	 * @memberof Overlay
 	 * @instance
 	 * @final
@@ -189,7 +184,6 @@ mfExtend( Overlay, View, {
 
 		/**
 		 * Fired when the overlay is closed.
-		 *
 		 * @event Overlay#hide
 		 */
 		this.emit( 'hide' );
@@ -202,7 +196,6 @@ mfExtend( Overlay, View, {
 	 * Also hide .hideable elements
 	 * Can't use jQuery's hide() and show() because show() sets display: block.
 	 * And we want display: table for headers.
-	 *
 	 * @memberof Overlay
 	 * @instance
 	 * @protected
@@ -216,7 +209,6 @@ mfExtend( Overlay, View, {
 
 /**
  * Factory method for an overlay with a single child
- *
  * @memberof Overlay
  * @instance
  * @protected

@@ -5,17 +5,19 @@ var
 	util = require( '../mobile.startup/util' ),
 	CategoryGateway = require( './CategoryGateway' ),
 	CategoryLookupInputWidget = require( './CategoryLookupInputWidget' ),
+	toast = require( '../mobile.startup/toast' ),
 	router = mw.loader.require( 'mediawiki.router' );
 
 /**
  * Displays the list of categories for a page
- *
  * @class CategoryAddOverlay
  * @extends Overlay
  * @uses CategoryGateway
  * @param {Object} options Configuration options
+ * @param {OO.EventEmitter} options.eventBus Object used to emit category-added events
  */
 function CategoryAddOverlay( options ) {
+	this.eventBus = options.eventBus;
 	Overlay.call(
 		this,
 		util.extend(
@@ -47,15 +49,10 @@ mfExtend( CategoryAddOverlay, Overlay, {
 	 */
 	template: util.template( `
 <div class="overlay-header-container header-container position-fixed"></div>
-<div class="overlay-content">
-	<!-- Should be broken out into separate component -->
-	<div class="category-editor">
-		<div class="content-header panel add-panel">
-			<div class="category-add-input"></div>
-		</div>
-		<p class="overlay-content category-suggestions panel"></p>
-	</div>
+<div class="content-header panel add-panel overlay-content">
+	<div class="category-add-input"></div>
 </div>
+<p class="overlay-content category-suggestions panel"></p>
 	` ),
 
 	/**
@@ -87,7 +84,6 @@ mfExtend( CategoryAddOverlay, Overlay, {
 
 	/**
 	 * Handle a click on an added category
-	 *
 	 * @memberof CategoryAddOverlay
 	 * @instance
 	 * @param {jQuery.Event} ev
@@ -104,7 +100,6 @@ mfExtend( CategoryAddOverlay, Overlay, {
 	/**
 	 * Handle the click on the save button. Builds a string of new categories
 	 * and add it to the article.
-	 *
 	 * @memberof CategoryAddOverlay
 	 * @instance
 	 */
@@ -128,7 +123,7 @@ mfExtend( CategoryAddOverlay, Overlay, {
 		// if there are no categories added, don't do anything (the user shouldn't see the save
 		// button)
 		if ( newCategories.length === 0 ) {
-			mw.notify( mw.msg( 'mobile-frontend-categories-nodata' ), { type: 'error' } );
+			toast.show( mw.msg( 'mobile-frontend-categories-nodata' ), { type: 'error' } );
 		} else {
 			// save the new categories
 			this.gateway.save( this.title, newCategories ).then( function () {
@@ -140,7 +135,7 @@ mfExtend( CategoryAddOverlay, Overlay, {
 				self.showHidden( '.initial-header' );
 				self.$safeButton.prop( 'disabled', false );
 				// FIXME: Should be a better error message
-				mw.notify( mw.msg( 'mobile-frontend-categories-nodata' ), { type: 'error' } );
+				toast.show( mw.msg( 'mobile-frontend-categories-nodata' ), { type: 'error' } );
 			} );
 		}
 	}

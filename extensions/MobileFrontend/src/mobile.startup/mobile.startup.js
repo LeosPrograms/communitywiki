@@ -1,6 +1,7 @@
 var
 	moduleLoader = require( './moduleLoaderSingleton' ),
-	util = require( './util' );
+	util = require( './util' ),
+	schemaMobileWebSearch = require( './search/schemaMobileWebSearch' );
 
 // Expose the entry chunk through libraryTarget and library. This allows
 // arbitrary file access via ResourceLoader like
@@ -8,12 +9,11 @@ var
 module.exports = {
 	moduleLoader: moduleLoader,
 	mfExtend: require( './mfExtend' ),
+	context: require( './context' ),
 	time: require( './time' ),
 	util,
-	headers: require( './headers' ),
 	View: require( './View' ),
 	PageGateway: require( './PageGateway' ),
-	LanguageInfo: require( './LanguageInfo' ),
 	Browser: require( './Browser' ),
 	Button: require( './Button' ),
 	Icon: require( './Icon' ),
@@ -29,15 +29,11 @@ module.exports = {
 	OverlayManager: require( './OverlayManager' ),
 	Overlay: require( './Overlay' ),
 	loadingOverlay: require( './loadingOverlay' ),
-	Drawer: require( './Drawer' ),
 	CtaDrawer: require( './CtaDrawer' ),
-	showOnPageReload: require( './showOnPageReload' ),
-	// For Minerva compatibility (access deprecated)
-	toast: require( './showOnPageReload' ),
-	Watchstar: require( './watchstar/watchstar' ),
-	categoryOverlay: require( './categoryOverlay' ),
+	toast: require( './toast' ),
+	Watchstar: require( './watchstar/Watchstar' ),
+	rlModuleLoader: require( './rlModuleLoader' ),
 	eventBusSingleton: require( './eventBusSingleton' ),
-	promisedView: require( './promisedView' ),
 	Toggler: require( './Toggler' ),
 	toc: {
 		// In case any old version of Minerva is cached.
@@ -48,6 +44,9 @@ module.exports = {
 			};
 		}
 	},
+	notifications: {
+		overlay: require( './notifications/overlay' )
+	},
 	references: require( './references/references' ),
 	search: {
 		SearchOverlay: require( './search/SearchOverlay' ),
@@ -57,13 +56,13 @@ module.exports = {
 	lazyImages: {
 		lazyImageLoader: require( './lazyImages/lazyImageLoader' )
 	},
+	talk: {
+		overlay: require( './talk/overlay' )
+	},
 	languageOverlay: require( './languageOverlay/languageOverlay' ),
-	languageInfoOverlay: require( './languageOverlay/languageInfoOverlay' ),
 	mediaViewer: {
 		overlay: require( './mediaViewer/overlay' )
-	},
-	amcOutreach: require( './amcOutreach/amcOutreach' ),
-	Section: require( './Section' )
+	}
 };
 
 mw.mobileFrontend = moduleLoader;
@@ -71,3 +70,5 @@ mw.mobileFrontend = moduleLoader;
 // Setup a single export for new modules to fold all of the above lines into.
 // One export to rule them all!
 moduleLoader.define( 'mobile.startup', module.exports );
+
+schemaMobileWebSearch.subscribeMobileWebSearchSchema();

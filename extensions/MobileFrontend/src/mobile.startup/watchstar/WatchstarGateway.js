@@ -48,7 +48,7 @@ WatchstarGateway.prototype = {
 	 * @instance
 	 * @param {PageID[]} ids
 	 * @param {PageTitle[]} titles
-	 * @return {jQuery.Deferred<WatchStatusMap>}
+	 * @return {JQuery.Deferred<WatchStatusMap>}
 	 */
 	getStatuses: function ( ids, titles ) {
 		// Issue two requests and coalesce the results.
@@ -62,7 +62,7 @@ WatchstarGateway.prototype = {
 	 * @memberof WatchstarGateway
 	 * @instance
 	 * @param {PageID[]} ids
-	 * @return {jQuery.Deferred<WatchStatusMap>}
+	 * @return {JQuery.Deferred<WatchStatusMap>}
 	 */
 	getStatusesByID: function ( ids ) {
 		var self = this;
@@ -85,7 +85,7 @@ WatchstarGateway.prototype = {
 	 * @memberof WatchstarGateway
 	 * @instance
 	 * @param {PageTitle[]} titles
-	 * @return {jQuery.Deferred<WatchStatusMap>}
+	 * @return {JQuery.Deferred<WatchStatusMap>}
 	 */
 	getStatusesByTitle: function ( titles ) {
 		var self = this;
@@ -107,7 +107,7 @@ WatchstarGateway.prototype = {
 	 * @instance
 	 * @param {PageTitle[]} titles
 	 * @param {WatchStatus} watched
-	 * @return {jQuery.Deferred}
+	 * @return {JQuery.Deferred}
 	 */
 	postStatusesByTitle: function ( titles, watched ) {
 		var params = {
@@ -124,7 +124,7 @@ WatchstarGateway.prototype = {
 	 * @memberof WatchstarGateway
 	 * @instance
 	 * @param {Object} rsp The API:Info response.
-	 * @return {jQuery.Deferred<WatchStatusMap>}
+	 * @return {JQuery.Deferred<WatchStatusMap>}
 	 * @see getStatusesByID
 	 * @see getStatusesByTitle
 	 */

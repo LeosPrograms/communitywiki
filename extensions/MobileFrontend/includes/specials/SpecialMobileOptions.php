@@ -7,7 +7,7 @@ use MobileFrontend\Features\IFeature;
  * Adds a special page with mobile specific preferences
  */
 class SpecialMobileOptions extends MobileSpecialPage {
-	/** @var bool Whether this special page has a desktop version or not */
+	/** @var boolean $hasDesktopVersion Whether this special page has a desktop version or not */
 	protected $hasDesktopVersion = true;
 
 	/**
@@ -17,7 +17,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 
 	/**
 	 * Advanced Mobile Contributions mode
-	 * @var \MobileFrontend\Amc\Manager
+	 * @var \MobileFrontend\AMC\Manager
 	 */
 	private $amc;
 
@@ -45,7 +45,6 @@ class SpecialMobileOptions extends MobileSpecialPage {
 	 */
 	public function setJsConfigVars() {
 		$this->getOutput()->addJsConfigVars( [
-			'wgMFCollapseSectionsByDefault' => $this->getConfig()->get( 'MFCollapseSectionsByDefault' ),
 			'wgMFEnableFontChanger' => $this->featureManager->isFeatureAvailableForCurrentUser(
 				'MFEnableFontChanger'
 			),
@@ -63,6 +62,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 		$this->setJsConfigVars();
 
 		$this->mobileContext->setForceMobileView( true );
+		$this->mobileContext->setContentTransformations( false );
 
 		if ( $this->getRequest()->wasPosted() ) {
 			$this->submitSettingsForm();
@@ -72,7 +72,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 	}
 
 	private function buildAMCToggle() {
-		/** @var \MobileFrontend\Amc\UserMode $userMode */
+		/** @var \MobileFrontend\AMC\UserMode $userMode */
 			$userMode = $this->services->getService( 'MobileFrontend.AMC.UserMode' );
 			$amcToggle = new OOUI\CheckboxInputWidget( [
 				'name' => 'enableAMC',
@@ -88,7 +88,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 						'input' => $amcToggle,
 						'label' => new OOUI\HtmlSnippet(
 							Html::openElement( 'div' ) .
-							Html::rawElement( 'strong', [],
+							Html::rawElement( 'strong', [ 'class' => 'indicator-circle' ],
 								$this->msg( 'mobile-frontend-mobile-option-amc' )->parse() ) .
 							Html::rawElement( 'div', [ 'class' => 'option-description' ],
 								$this->msg( 'mobile-frontend-mobile-option-amc-experiment-description' )->parse()
@@ -139,7 +139,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 		if ( $this->getRequest()->getCheck( 'success' ) ) {
 			$out->wrapWikiMsg(
 				MobileUI::contentElement(
-					Html::successBox( $this->msg( 'savedprefs' )->parse() )
+					Html::successBox( $this->msg( 'savedprefs' ) )
 				)
 			);
 		}
@@ -232,7 +232,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 			'type' => 'submit',
 		] );
 
-		if ( $user->isRegistered() ) {
+		if ( $user->isLoggedIn() ) {
 			$fields[] = new OOUI\HiddenInputWidget( [ 'name' => 'token',
 				'value' => $user->getEditToken() ] );
 		}
@@ -266,8 +266,8 @@ class SpecialMobileOptions extends MobileSpecialPage {
 		if ( $returnTo !== '' ) {
 			$title = Title::newFromText( $returnTo );
 
-			if ( $title !== null ) {
-				return $title->getFullURL( $request->getText( 'returntoquery' ) );
+			if ( !is_null( $title ) ) {
+				return $title->getFullURL();
 			}
 		}
 
@@ -305,10 +305,10 @@ class SpecialMobileOptions extends MobileSpecialPage {
 		$user = $this->getUser();
 		$output = $this->getOutput();
 
-		if ( $user->isRegistered() && !$user->matchEditToken( $request->getVal( 'token' ) ) ) {
+		if ( $user->isLoggedIn() && !$user->matchEditToken( $request->getVal( 'token' ) ) ) {
 			$errorText = __METHOD__ . '(): token mismatch';
 			wfDebugLog( 'mobile', $errorText );
-			$output->addHTML( '<div class="errorbox">'
+			$output->addHTML( '<div class="error">'
 				. $this->msg( "mobile-frontend-save-error" )->parse()
 				. '</div>'
 			);

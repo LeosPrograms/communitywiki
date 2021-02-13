@@ -1,5 +1,4 @@
-let sandbox, ImageGateway, findSizeBucket;
-const
+var sandbox, ImageGateway, findSizeBucket,
 	sinon = require( 'sinon' ),
 	dom = require( '../utils/dom' ),
 	mediaWiki = require( '../utils/mw' ),
@@ -28,7 +27,8 @@ QUnit.test( '#findSizeBucket', function ( assert ) {
 } );
 
 QUnit.test( 'ImageGateway#getThumb (missing page)', function ( assert ) {
-	const api = {
+	var gateway,
+		api = {
 			get: function () {
 				return util.Deferred().resolve( {
 					query: {
@@ -41,8 +41,8 @@ QUnit.test( 'ImageGateway#getThumb (missing page)', function ( assert ) {
 					}
 				} );
 			}
-		},
-		gateway = new ImageGateway( { api: api } );
+		};
+	gateway = new ImageGateway( { api: api } );
 	assert.rejects(
 		gateway.getThumb( 'Missing' ),
 		function ( err ) {

@@ -13,7 +13,6 @@ MobileWebSearchLogger.prototype = {
 	/**
 	 * Sets the internal state required to deal with logging user session
 	 * data.
-	 *
 	 * @memberof MobileWebSearchLogger
 	 * @instance
 	 * @private
@@ -25,7 +24,6 @@ MobileWebSearchLogger.prototype = {
 	/**
 	 * Sets the internal state required to deal with logging search session
 	 * data.
-	 *
 	 * @memberof MobileWebSearchLogger
 	 * @instance
 	 * @private
@@ -37,7 +35,6 @@ MobileWebSearchLogger.prototype = {
 
 	/**
 	 * Handles the 'search-show' event.
-	 *
 	 * @memberof MobileWebSearchLogger
 	 * @instance
 	 */
@@ -47,7 +44,6 @@ MobileWebSearchLogger.prototype = {
 
 	/**
 	 * Handles the 'search-start' event.
-	 *
 	 * @memberof MobileWebSearchLogger
 	 * @instance
 	 */
@@ -63,7 +59,6 @@ MobileWebSearchLogger.prototype = {
 
 	/**
 	 * Handles the 'search-results' event.
-	 *
 	 * @memberof MobileWebSearchLogger
 	 * @instance
 	 * @param {Object} event with property {Object[]} event.results
@@ -87,7 +82,6 @@ MobileWebSearchLogger.prototype = {
 
 	/**
 	 * Handles the 'search-result-click' event.
-	 *
 	 * @memberof MobileWebSearchLogger
 	 * @instance
 	 * @param {Object} event with property {number} event.index
@@ -112,7 +106,6 @@ MobileWebSearchLogger.prototype = {
  * Convenience function that wires up an instance of the
  * MobileWebSearchLogger class to the search-* events emitted by the
  * search overlay.
- *
  * @memberof MobileWebSearchLogger
  * @param {SearchOverlay} searchOverlay
  */

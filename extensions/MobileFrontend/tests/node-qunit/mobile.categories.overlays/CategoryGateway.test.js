@@ -1,8 +1,7 @@
-let
+var
 	util,
 	CategoryGateway,
-	sandbox;
-const
+	sandbox,
 	jQuery = require( '../utils/jQuery' ),
 	dom = require( '../utils/dom' ),
 	mediaWiki = require( '../utils/mw' ),
@@ -53,10 +52,12 @@ QUnit.module( 'MobileFrontend CategoryGateway.js', {
 } );
 
 QUnit.test( 'getCategories()', function ( assert ) {
-	const self = this,
-		gateway = new CategoryGateway( this.getSpy ),
-		result = gateway.getCategories( 'HelloWorld' );
+	var
+		self = this,
+		result,
+		gateway = new CategoryGateway( this.getSpy );
 
+	result = gateway.getCategories( 'HelloWorld' );
 	assert.notStrictEqual( result, false, 'result should not return false' );
 
 	return result.then( function () {
@@ -74,7 +75,7 @@ QUnit.test( 'getCategories()', function ( assert ) {
 } );
 
 QUnit.test( 'save()', function ( assert ) {
-	const
+	var
 		self = this,
 		gateway = new CategoryGateway( this.postSpy ),
 		title = 'HelloWorld',

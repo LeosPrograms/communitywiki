@@ -1,6 +1,5 @@
 /**
  * Autosign a block of text if necessary
- *
  * @instance
  * @param {string} text
  * @return {string} text with an autosign ("~~~~") if necessary

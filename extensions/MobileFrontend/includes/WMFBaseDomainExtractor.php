@@ -55,10 +55,10 @@ class WMFBaseDomainExtractor implements BaseDomainExtractorInterface {
 		// Per http://php.net/manual/en/function.parse-url.php,
 		// If the requested component doesn't exist within the given
 		// URL, NULL will be returned. So wfParseUrl() will return
-		// false as it calls parse_url() if a valid server URL is not
+		// NULL as it calls parse_url() if a valid server URL is not
 		// given except it's an empty string.
 		$parsedUrl = wfParseUrl( $server );
-		$host = $parsedUrl !== false ? $parsedUrl['host'] : null;
+		$host = $parsedUrl['host'];
 
 		$wikiHost = $this->matchBaseHostname( $host, $this->wmfWikiHosts );
 		if ( $wikiHost !== false ) {
@@ -77,7 +77,7 @@ class WMFBaseDomainExtractor implements BaseDomainExtractorInterface {
 	 *
 	 * @param string $hostname Visited host
 	 * @param string[] $hosts Array of all wikimedia hosts
-	 * @return bool|string Returns wikimedia host base domain, false when not found
+	 * @return bool|string Returns wikimedia host basedomain, false when not found
 	 */
 	private function matchBaseHostname( $hostname, array $hosts ) {
 		foreach ( $hosts as $wmfHost ) {
@@ -92,7 +92,7 @@ class WMFBaseDomainExtractor implements BaseDomainExtractorInterface {
 	 * Parse $host and return $baseDomain with first subdomain
 	 * ex: extractSubdomain('en.commons.wikimedia.org', '.wikimedia.org') => 'commons.wikimedia.org'
 	 *
-	 * This function assumes that $fullHostname is a subdomain of $baseDomain. Please
+	 * This function assumes that $fullHostname is a subdomain of $basedomain. Please
 	 * do the endsWith() check first before calling this function
 	 *
 	 * @param string $fullHostname

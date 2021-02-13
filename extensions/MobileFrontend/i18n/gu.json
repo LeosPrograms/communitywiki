@@ -1,17 +1,17 @@
 {
 	"@metadata": {
 		"authors": [
-			"Arbhatt",
 			"Ashok modhvadia",
-			"Bhatakati aatma",
 			"Dsvyas",
 			"KartikMistry",
-			"Mitulverma13",
-			"NehalDaveND",
-			"Nisargjhaveri",
 			"Sushant savla",
 			"Tekina",
-			"Vyom"
+			"Mitulverma13",
+			"Vyom",
+			"Arbhatt",
+			"NehalDaveND",
+			"Nisargjhaveri",
+			"Bhatakati aatma"
 		]
 	},
 	"mobile-frontend-account-create-captcha-placeholder": "ખાતરી કોડ દાખલ કરો",
@@ -24,6 +24,8 @@
 	"mobile-frontend-desc": "મોબાઈલ દેખાવ",
 	"mobile-frontend-diffview-404-title": "ખરાબ આવૃત્તિ",
 	"mobile-frontend-diffview-title": "ફેરફારો",
+	"mobile-frontend-donate-image-nouploads": "કોઇ અપલોડ નહી",
+	"mobile-frontend-donate-image-title": "અપલોડસ",
 	"mobile-frontend-edit-login-action": "<strong>{{SITENAME}} ને સુધારવા મદદ કરો.</strong><br />ફેરફાર કરવા માટે પ્રવેશ કરો.",
 	"mobile-frontend-edit-signup-action": "<strong>{{SITENAME}}ને સુધારવા મદદ કરો.</strong><br /> ફેરફાર કરવા માટે પ્રવેશ કરો.",
 	"mobile-frontend-editor-anon": "લોગઈન થયા વિના ફેરફાર કરો",
@@ -37,7 +39,7 @@
 	"mobile-frontend-editor-summary": "સારાંશ :",
 	"mobile-frontend-editor-switch-editor": "સંપાદક સ્વિચ કરો",
 	"mobile-frontend-editor-uploadenable": "સંપાદન સક્રિય કરવા માટે પ્રથમ એક ફોટો અપલોડ કરો.",
-	"mobile-frontend-editor-viewing-source-page": "<span> $1</span>નો <strong>સ્રોત જોઇ રહ્યા છો</strong>",
+	"mobile-frontend-editor-viewing-source-page": "<strong>સ્રોત જુવો</strong><span> $1</span>",
 	"mobile-frontend-editor-wait": "ફેરફાર સેવ થાય છે, કૃપા કરીને રાહ જુઓ.",
 	"mobile-frontend-expand-sections-description": "નવા પાનાની શોધખોળ કરતા શમય હંમેશા તમામ વિભાગો વિસ્તૃત કરો.",
 	"mobile-frontend-expand-sections-status": "બધા વિભાગો વિસ્તૃત કરો",
@@ -61,6 +63,7 @@
 	"mobile-frontend-privacy-link-text": "ગોપનીયતા",
 	"mobile-frontend-save-settings": "સાચવો",
 	"mobile-frontend-settings-beta": "બીટા",
+	"mobile-frontend-talk-overlay-header": "ચર્ચા",
 	"mobile-frontend-terms-text": "વપરાશની શરતો",
 	"mobile-frontend-view": "મોબાઈલ દેખાવ",
 	"mobile-frontend-view-desktop": "ડેસ્કટોપ",
@@ -76,5 +79,7 @@
 	"mobile-frontend-user-page-describe-yourself-editors": "સંપાદક",
 	"tag-mobile_edit": "મોબાઈલ દ્વારા ફેરફાર",
 	"tag-mobile_web_edit": "મોબાઇલ વેબ સંપાદન",
-	"mobile-frontend-loading-message": "લવાઇ રહ્યું છે..."
+	"mobile-frontend-loading-message": "લવાઇ રહ્યું છે...",
+	"mobile-frontend-panel-ok": "બરોબર",
+	"mobile-frontend-panel-cancel": "ના, આભાર"
 }

@@ -1,7 +1,14 @@
 {
 	"root": true,
 	"extends": [
-		"wikimedia/server",
+		"wikimedia",
 		".eslintshared.js"
-	]
+	],
+	"env": {
+		"browser": true
+	},
+	"globals": {
+		"OO": "readable",
+		"mw": "readable"
+	}
 }

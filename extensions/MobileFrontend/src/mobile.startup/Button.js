@@ -5,7 +5,6 @@ var
 
 /**
  * A wrapper for creating a button.
- *
  * @class Button
  * @extends View
  *

@@ -6,7 +6,6 @@ var units = [ 'seconds', 'minutes', 'hours', 'days', 'months', 'years' ],
 
 /**
  * Calculate the correct unit of timestamp
- *
  * @memberof time
  * @instance
  * @param {number} timestampDelta
@@ -25,7 +24,6 @@ function timeAgo( timestampDelta ) {
 
 /**
  * Calculate the correct unit of timestamp delta
- *
  * @memberof time
  * @instance
  * @param {number} timestamp
@@ -39,7 +37,6 @@ function getTimeAgoDelta( timestamp ) {
 
 /**
  * Whether timestamp delta is less than a day old
- *
  * @memberof time
  * @instance
  * @param {{value: number, unit: string}} delta Object of timestamp and its label
@@ -51,7 +48,6 @@ function isRecent( delta ) {
 
 /**
  * Is delta less than 10 seconds?
- *
  * @memberof time
  * @instance
  * @param {{value: number, unit: string}} delta Object of timestamp and its label
@@ -63,7 +59,6 @@ function isNow( delta ) {
 
 /**
  * Return a message relating to the last modified relative time.
- *
  * @memberof time
  * @instance
  * @param {number} ts timestamp
@@ -114,7 +109,6 @@ function getLastModifiedMessage( ts, username, gender, historyUrl ) {
 
 /**
  * Return a message relating to the registration date of the user
- *
  * @memberof time
  * @instance
  * @param {string} ts timestamp

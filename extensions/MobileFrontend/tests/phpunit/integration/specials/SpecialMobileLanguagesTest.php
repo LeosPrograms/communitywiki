@@ -1,7 +1,7 @@
 <?php
 
-use MediaWiki\MediaWikiServices;
 use Psr\Log\LoggerInterface;
+use MediaWiki\MediaWikiServices;
 
 /**
  * @group MobileFrontend
@@ -121,10 +121,10 @@ class SpecialMobileLanguagesTest extends MediaWikiTestCase {
 	}
 
 	/**
+	 * @dataProvider providerProcessLanguages
 	 * @covers SpecialMobileLanguages::processLanguages
 	 * @covers SpecialMobileLanguages::__construct
 	 * @covers SpecialMobileLanguages::isLanguageObjectValid
-	 * @dataProvider providerProcessLanguages
 	 */
 	public function testProcessLanguages( $langlinks, $expected ) {
 		$apiResult = [
@@ -132,11 +132,7 @@ class SpecialMobileLanguagesTest extends MediaWikiTestCase {
 				'langlinks' => $langlinks
 			]
 		];
-		$services = MediaWikiServices::getInstance();
-		$sp = new SpecialMobileLanguages(
-			$services->getLanguageConverterFactory(),
-			$services->getLanguageNameUtils()
-		);
+		$sp = new SpecialMobileLanguages();
 		$class = new ReflectionClass( SpecialMobileLanguages::class );
 		$method = $class->getMethod( 'processLanguages' );
 		$method->setAccessible( true );
@@ -161,7 +157,7 @@ class SpecialMobileLanguagesTest extends MediaWikiTestCase {
 		];
 		$expected = [];
 
-		$loggerMock = $this->createMock( LoggerInterface::class );
+		$loggerMock = $this->getMock( LoggerInterface::class );
 		$loggerMock->expects( $this->once() )
 			->method( 'warning' )
 			->with( $this->isType( 'string' ), $this->equalTo(
@@ -172,7 +168,7 @@ class SpecialMobileLanguagesTest extends MediaWikiTestCase {
 		) );
 		$this->setLogger( MobileContext::LOGGER_CHANNEL, $loggerMock );
 
-		$requestMock = $this->createMock( FauxRequest::class );
+		$requestMock = $this->getMock( FauxRequest::class );
 		$requestMock->expects( $this->once() )
 			->method( 'getFullRequestURL' )
 			->willReturn( $testUri );

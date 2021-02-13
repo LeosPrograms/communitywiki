@@ -2,8 +2,8 @@
 
 namespace Tests\MobileFrontend\Devices;
 
-use MobileFrontend\Devices\AMFDeviceDetector;
 use WebRequest;
+use MobileFrontend\Devices\AMFDeviceDetector;
 
 /**
  * @group MobileFrontend
@@ -20,7 +20,7 @@ class AMFDeviceDetectorTest extends \MediaWikiUnitTestCase {
 	 */
 	private $detector;
 
-	protected function setUp() : void {
+	protected function setUp() {
 		parent::setUp();
 
 		$this->request = new WebRequest();
@@ -28,9 +28,9 @@ class AMFDeviceDetectorTest extends \MediaWikiUnitTestCase {
 	}
 
 	/**
+	 * @dataProvider provideIsMobileDevice
 	 * @covers \MobileFrontend\Devices\AMFDeviceDetector::detectDeviceProperties
 	 * @covers \MobileFrontend\Devices\DeviceProperties::isMobileDevice
-	 * @dataProvider provideIsMobileDevice
 	 */
 	public function testIsMobileDevice( $server, $expectedIsMobileDevice ) {
 		$isMobileDevice =
@@ -54,9 +54,9 @@ class AMFDeviceDetectorTest extends \MediaWikiUnitTestCase {
 	}
 
 	/**
+	 * @dataProvider provideIsTabletDevice
 	 * @covers \MobileFrontend\Devices\AMFDeviceDetector::detectDeviceProperties
 	 * @covers \MobileFrontend\Devices\DeviceProperties::isTabletDevice
-	 * @dataProvider provideIsTabletDevice
 	 */
 	public function testIsTabletDevice( $server, $expectedIsTabletDevice ) {
 		$isTabletDevice =

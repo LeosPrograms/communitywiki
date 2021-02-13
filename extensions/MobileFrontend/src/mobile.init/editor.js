@@ -7,18 +7,18 @@ var M = require( '../mobile.startup/moduleLoaderSingleton' ),
 	// .edit-link comes from MobileFrontend user page creation CTA
 	$allEditLinks = $( '#ca-edit, .mw-editsection a, .edit-link' ),
 	user = mw.user,
+	popup = require( '../mobile.startup/toast' ),
 	CtaDrawer = require( '../mobile.startup/CtaDrawer' ),
 	// FIXME: Disable on IE < 10 for time being
 	blacklisted = /MSIE \d\./.test( navigator.userAgent ),
 	contentModel = mw.config.get( 'wgPageContentModel' ),
 	veConfig = mw.config.get( 'wgVisualEditorConfig' ),
 	editCount = mw.config.get( 'wgUserEditCount' ),
-	editorPath = /^\/editor\/(\d+|T-\d+|all)$/;
+	editorPath = /^\/editor\/(\d+|all)$/;
 
 /**
  * Event handler for edit link clicks. Will prevent default link
  * behaviour and will not allow propagation
- *
  * @method
  * @ignore
  * @param {HTMLElement} elem
@@ -26,17 +26,11 @@ var M = require( '../mobile.startup/moduleLoaderSingleton' ),
  * @param {Router} router
  */
 function onEditLinkClick( elem, ev, router ) {
-	var section;
+	var section = ( new mw.Uri( elem.href ) ).query.section || 'all';
 	if ( $allEditLinks.length === 1 ) {
 		// If section edit links are not available, the only edit link
 		// should allow editing the whole page (T232170)
 		section = 'all';
-	} else {
-		section = mw.util.getParamValue( 'section', elem.href ) || 'all';
-	}
-	// Don't do anything for section edit links for different pages (transcluded)
-	if ( mw.config.get( 'wgPageName' ) !== mw.util.getParamValue( 'title', elem.href ) ) {
-		return;
 	}
 	router.navigate( '#/editor/' + section );
 	// DO NOT USE stopPropagation or you'll break click tracking in WikimediaEvents
@@ -51,63 +45,22 @@ function onEditLinkClick( elem, ev, router ) {
 /**
  * Retrieve the user's preferred editor setting. If none is set, return the default
  * editor for this wiki.
- *
  * @method
  * @ignore
  * @return {string} Either 'VisualEditor' or 'SourceEditor'
  */
 function getPreferredEditor() {
-	var defaultEditor, tokenData, anonid,
-		preferredEditor = mw.user.options.get( 'mobile-editor' ) || mw.storage.get( 'preferredEditor' );
+	var preferredEditor = mw.storage.get( 'preferredEditor' );
 	if ( preferredEditor ) {
 		return preferredEditor;
 	}
-	defaultEditor = mw.config.get( 'wgMFDefaultEditor' );
-	// Handle the ABTest case
-	tokenData = mw.storage.getObject( 'MFDefaultEditorABToken' );
-	if ( tokenData && tokenData.expires < Date.now() ) {
-		// The storage never expires by itself. We should keep this for a while, even if we remove
-		// the rest of this code, to clean up after ourselves.
-		mw.storage.remove( 'MFDefaultEditorABToken' );
-		tokenData = null;
-	}
-	if ( defaultEditor === 'abtest' ) {
-		if ( mw.user.isAnon() ) {
-			if ( !tokenData ) {
-				tokenData = {
-					token: mw.user.generateRandomSessionId(),
-					// 90 days
-					expires: Date.now() + 90 * 24 * 60 * 60 * 1000
-				};
-				mw.storage.setObject( 'MFDefaultEditorABToken', tokenData );
-			}
-			mw.config.set( 'wgMFSchemaEditAttemptStepAnonymousUserId', tokenData.token );
-			anonid = parseInt( tokenData.token.slice( 0, 8 ), 16 );
-			defaultEditor = anonid % 2 === 0 ? 'source' : 'visual';
-			mw.config.set( 'wgMFSchemaEditAttemptStepBucket', 'default-' + defaultEditor );
-		} else if ( mw.config.get( 'wgUserEditCount' ) <= 100 ) {
-			defaultEditor = mw.user.getId() % 2 === 0 ? 'source' : 'visual';
-			mw.config.set( 'wgMFSchemaEditAttemptStepBucket', 'default-' + defaultEditor );
-		} else {
-			defaultEditor = 'preference';
-		}
-	}
-	switch ( defaultEditor ) {
+	switch ( mw.config.get( 'wgMFDefaultEditor' ) ) {
 		case 'source':
 			return 'SourceEditor';
 		case 'visual':
 			return 'VisualEditor';
 		case 'preference':
-			// First check if the user has actually used the desktop editor.
-			// This is done hackily by checking if they have the preference
-			// set to suppress the welcome dialog or user education popups. (T261423)
-			if ( mw.user.options.get( 'visualeditor-hidebetawelcome' ) || mw.user.options.get( 'visualeditor-hideusered' ) ) {
-				return mw.user.options.get( 'visualeditor-editor' ) === 'visualeditor' ? 'VisualEditor' : 'SourceEditor';
-			} else {
-				// We don't know what their preference is.
-				// For now, continue to give them the source editor.
-				return 'SourceEditor';
-			}
+			return mw.user.options.get( 'visualeditor-editor' ) === 'visualeditor' ? 'VisualEditor' : 'SourceEditor';
 	}
 	// In the event of misconfiguration, fall back to source
 	return 'SourceEditor';
@@ -115,7 +68,6 @@ function getPreferredEditor() {
 
 /**
  * Initialize the edit button so that it launches the editor interface when clicked.
- *
  * @method
  * @ignore
  * @param {Page} page The page to edit.
@@ -126,14 +78,14 @@ function getPreferredEditor() {
 function setupEditor( page, skin, currentPageHTMLParser, router ) {
 	var uri, fragment, editorOverride,
 		overlayManager = OverlayManager.getSingleton(),
-		isNewPage = page.id === 0,
-		firstInitDone = false;
+		isNewPage = page.id === 0;
 
 	$allEditLinks.on( 'click', function ( ev ) {
 		onEditLinkClick( this, ev, overlayManager.router );
 	} );
 	overlayManager.add( editorPath, function ( sectionId ) {
 		var
+			scrollbarWidth = window.innerWidth - document.documentElement.clientWidth,
 			scrollTop = window.pageYOffset,
 			$content = $( '#mw-content-text' ),
 			editorOptions = {
@@ -150,15 +102,13 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 				oldId: mw.util.getParamValue( 'oldid' ),
 				contentLang: $content.attr( 'lang' ),
 				contentDir: $content.attr( 'dir' ),
-				sessionId: mw.config.get( 'wgWMESchemaEditAttemptStepSessionId' ) ||
-					mw.Uri().query.editingStatsId ||
-					user.generateRandomSessionId()
+				sessionId: user.generateRandomSessionId()
 			},
 			animationDelayDeferred, abortableDataPromise, loadingOverlay, overlayPromise,
 			initMechanism = mw.util.getParamValue( 'redlink' ) ? 'new' : 'click';
 
 		if ( sectionId !== 'all' ) {
-			editorOptions.sectionId = page.isWikiText() ? sectionId : undefined;
+			editorOptions.sectionId = page.isWikiText() ? +sectionId : null;
 		}
 
 		function showLoading() {
@@ -178,6 +128,13 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 					$sectionTop = $( '#bodyContent' );
 				}
 			}
+			// If there was a scrollbar that was hidden when the overlay was shown, add a margin
+			// with the same width. This is mostly so that developers testing this on desktop
+			// don't go crazy when the fake scroll fails to line up.
+			$page.css( {
+				'padding-right': '+=' + scrollbarWidth,
+				'box-sizing': 'border-box'
+			} );
 			// Pretend that we didn't just scroll the page to the top.
 			$page.prop( 'scrollTop', scrollTop );
 			// Then, pretend that we're scrolling to the position of the clicked heading.
@@ -219,6 +176,10 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 				'padding-bottom': '',
 				'margin-bottom': ''
 			} );
+			$( '#mw-mf-page-center' ).css( {
+				'padding-right': '',
+				'box-sizing': ''
+			} );
 
 			$( document.body ).removeClass( 've-loading' );
 		}
@@ -227,16 +188,12 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 		 * Log init event to edit schema.
 		 * Need to log this from outside the Overlay object because that module
 		 * won't have loaded yet.
-		 *
 		 * @private
 		 * @ignore
 		 * @param {string} editor name e.g. wikitext or visualeditor
 		 * @method
 		 */
 		function logInit( editor ) {
-			if ( firstInitDone ) {
-				editorOptions.sessionId = user.generateRandomSessionId();
-			}
 			mw.track( 'mf.schemaEditAttemptStep', {
 				action: 'init',
 				type: 'section',
@@ -246,12 +203,10 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 				editing_session_id: editorOptions.sessionId
 				/* eslint-enable camelcase */
 			} );
-			firstInitDone = true;
 		}
 
 		/**
 		 * Check whether VisualEditor should be loaded
-		 *
 		 * @private
 		 * @ignore
 		 * @method
@@ -288,7 +243,6 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 
 		/**
 		 * Load source editor
-		 *
 		 * @private
 		 * @ignore
 		 * @method
@@ -307,7 +261,6 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 
 		/**
 		 * Load visual editor. If it fails to load for any reason, load the source editor instead.
-		 *
 		 * @private
 		 * @ignore
 		 * @method
@@ -374,15 +327,12 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 				}
 				// Show the editor!
 				overlayManager.replaceCurrent( overlay );
-			}, function ( error, apiResponse ) {
+			}, function ( error ) {
 				// Could not load the editor.
 				overlayManager.router.back();
 				if ( error.show ) {
 					// Probably a blockMessageDrawer returned because the user is blocked.
-					document.body.appendChild( error.$el[ 0 ] );
 					error.show();
-				} else if ( apiResponse ) {
-					mw.notify( editorOptions.api.getErrorMessage( apiResponse ) );
 				} else {
 					mw.notify( mw.msg( 'mobile-frontend-editor-error-loading' ) );
 				}
@@ -393,16 +343,11 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 	} );
 
 	$( '#ca-edit a' ).prop( 'href', function ( i, href ) {
-		try {
-			var uri = new mw.Uri( href );
-			// By default the editor opens section 0 (lead section), rather than the whole article.
-			// This might be changed in the future (T210659).
-			uri.query.section = '0';
-			return uri.toString();
-		} catch ( e ) {
-			// T106244 - the href couldn't be parsed likely due to invalid UTF-8
-			return href;
-		}
+		var uri = new mw.Uri( href );
+		// By default the editor opens section 0 (lead section), rather than the whole article.
+		// This might be changed in the future (T210659).
+		uri.query.section = 0;
+		return uri.toString();
 	} );
 
 	if ( !router.getPath() && ( mw.util.getParamValue( 'veaction' ) || mw.util.getParamValue( 'action' ) === 'edit' ) ) {
@@ -432,7 +377,6 @@ function setupEditor( page, skin, currentPageHTMLParser, router ) {
 /**
  * Hide any section id icons in the page. This will not hide the edit icon in the page action
  * menu.
- *
  * @method
  * @ignore
  * @param {PageHTMLParser} currentPageHTMLParser
@@ -443,37 +387,30 @@ function hideSectionEditIcons( currentPageHTMLParser ) {
 
 /**
  * Show a drawer with log in / sign up buttons.
- *
  * @method
  * @ignore
  * @param {Router} router
  */
-function bindEditLinksLoginDrawer( router ) {
-	var drawer;
-	function showLoginDrawer() {
-		if ( !drawer ) {
-			drawer = new CtaDrawer( {
-				content: mw.msg( 'mobile-frontend-editor-disabled-anon' ),
-				signupQueryParams: {
-					warning: 'mobile-frontend-watchlist-signup-action'
-				}
-			} );
+function showLoginDrawer( router ) {
+	var drawer = new CtaDrawer( {
+		content: mw.msg( 'mobile-frontend-editor-disabled-anon' ),
+		signupQueryParams: {
+			warning: 'mobile-frontend-watchlist-signup-action'
 		}
-		drawer.show();
-	}
+	} );
 	$allEditLinks.on( 'click', function ( ev ) {
-		showLoginDrawer();
+		drawer.show();
 		ev.preventDefault();
+		return drawer;
 	} );
 	router.route( editorPath, function () {
-		showLoginDrawer();
+		drawer.show();
 	} );
 	router.checkRoute();
 }
 
 /**
  * Setup the editor if the user can edit the page otherwise show a sorry toast.
- *
  * @method
  * @ignore
  * @param {Page} currentPage
@@ -494,11 +431,10 @@ function init( currentPage, currentPageHTMLParser, skin, router ) {
 		hideSectionEditIcons( currentPageHTMLParser );
 		editRestrictions = mw.config.get( 'wgRestrictionEdit' );
 		if ( mw.user.isAnon() && Array.isArray( editRestrictions ) && editRestrictions.indexOf( '*' ) !== -1 ) {
-			bindEditLinksLoginDrawer( router );
+			showLoginDrawer( router );
 		} else {
-			var $link = $( '<a>' ).attr( 'href', '/wiki/' + mw.config.get( 'wgPageName' ) + '?action=edit' );
-			editErrorMessage = isReadOnly ? mw.msg( 'apierror-readonly' ) : mw.message( 'mobile-frontend-editor-disabled', $link ).parseDom();
-			bindEditLinksSorryToast( editErrorMessage, router );
+			editErrorMessage = isReadOnly ? mw.msg( 'apierror-readonly' ) : mw.msg( 'mobile-frontend-editor-disabled' );
+			showSorryToast( editErrorMessage, router );
 		}
 	}
 }
@@ -507,19 +443,18 @@ function init( currentPage, currentPageHTMLParser, skin, router ) {
  * Wire up events that ensure we
  * show a toast message with sincere condolences when user navigates to
  * #/editor or clicks on an edit button
- *
  * @method
  * @ignore
  * @param {string} msg Message for sorry message
  * @param {Router} router
  */
-function bindEditLinksSorryToast( msg, router ) {
+function showSorryToast( msg, router ) {
 	$allEditLinks.on( 'click', function ( ev ) {
-		mw.notify( msg );
+		popup.show( msg );
 		ev.preventDefault();
 	} );
 	router.route( editorPath, function () {
-		mw.notify( msg );
+		popup.show( msg );
 	} );
 	router.checkRoute();
 }
@@ -547,7 +482,7 @@ module.exports = function ( currentPage, currentPageHTMLParser, skin ) {
 
 	if ( currentPage.inNamespace( 'file' ) && isMissing ) {
 		// Is a new file page (enable upload image only) Bug 58311
-		bindEditLinksSorryToast( mw.msg( 'mobile-frontend-editor-uploadenable' ), router );
+		showSorryToast( mw.msg( 'mobile-frontend-editor-uploadenable' ), router );
 	} else {
 		// Edit button is currently hidden. A call to init() will update it as needed.
 		init( currentPage, currentPageHTMLParser, skin, router );

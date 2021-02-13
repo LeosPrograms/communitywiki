@@ -8,10 +8,9 @@ use MobileFrontend\Features\Feature;
  * @covers ::__construct()
  */
 class FeatureTest extends \MediaWikiUnitTestCase {
-	/** @var array */
 	private $madeUpConfigVariable;
 
-	protected function setUp() : void {
+	public function setUp() {
 		parent::setUp();
 		$this->madeUpConfigVariable = [
 			'beta' => true,
@@ -23,7 +22,7 @@ class FeatureTest extends \MediaWikiUnitTestCase {
 	 * @covers ::isAvailable
 	 */
 	public function testIsAvailableDefault() {
-		$modeMock = $this->createMock( \MobileFrontend\Features\IUserMode::class );
+		$modeMock = $this->getMock( \MobileFrontend\Features\IUserMode::class );
 		$modeMock->method( 'getModeIdentifier' )
 			->willReturn( 'default' );
 
@@ -39,11 +38,11 @@ class FeatureTest extends \MediaWikiUnitTestCase {
 	 * @covers ::isAvailable
 	 */
 	public function testIsAvailable() {
-		$betaMock = $this->createMock( \MobileFrontend\Features\IUserMode::class );
+		$betaMock = $this->getMock( \MobileFrontend\Features\IUserMode::class );
 		$betaMock->method( 'getModeIdentifier' )
 			->willReturn( 'beta' );
 
-		$stableMock = $this->createMock( \MobileFrontend\Features\IUserMode::class );
+		$stableMock = $this->getMock( \MobileFrontend\Features\IUserMode::class );
 		$stableMock->method( 'getModeIdentifier' )
 			->willReturn( 'base' );
 
@@ -66,7 +65,7 @@ class FeatureTest extends \MediaWikiUnitTestCase {
 		);
 		$actual = $feature->getId();
 
-		$this->assertSame( 'TestName', $actual );
+		$this->assertSame( $actual, 'TestName' );
 	}
 
 	/**
@@ -78,7 +77,7 @@ class FeatureTest extends \MediaWikiUnitTestCase {
 		);
 		$actual = $feature->__toString();
 
-		$this->assertSame( 'TestName', $actual );
+		$this->assertSame( $actual, 'TestName' );
 	}
 
 	/**
@@ -90,7 +89,7 @@ class FeatureTest extends \MediaWikiUnitTestCase {
 		);
 		$actual = $feature->getGroup();
 
-		$this->assertSame( 'test-group', $actual );
+		$this->assertSame( $actual, 'test-group' );
 	}
 
 	/**
@@ -103,7 +102,7 @@ class FeatureTest extends \MediaWikiUnitTestCase {
 		$actual = $feature->getNameKey();
 		$expected = 'test-group-mobile-option-TestName';
 
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $actual, $expected );
 	}
 
 	/**
@@ -116,10 +115,10 @@ class FeatureTest extends \MediaWikiUnitTestCase {
 		$actual = $feature->getDescriptionKey();
 		$expected = 'test-group-mobile-option-TestName-description';
 
-		$this->assertSame( $expected, $actual );
+		$this->assertSame( $actual, $expected );
 	}
 
-	protected function tearDown() : void {
+	public function tearDown() {
 		unset( $this->madeUpConfigVariable );
 		parent::tearDown();
 	}

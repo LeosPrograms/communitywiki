@@ -1,7 +1,6 @@
-const
+var
 	sinon = require( 'sinon' ),
-	oo = require( '../utils/oo' );
-let
+	oo = require( '../utils/oo' ),
 	sandbox,
 	ScrollEndEventEmitter;
 
@@ -18,7 +17,7 @@ QUnit.module( 'MobileFrontend ScrollEndEventEmitter.js', {
 } );
 
 QUnit.test( 'initializes properly', function ( assert ) {
-	const
+	var
 		eventBus = {
 			on: sinon.spy()
 		},
@@ -35,7 +34,7 @@ QUnit.test( 'initializes properly', function ( assert ) {
 } );
 
 QUnit.test( 'emits scroll end event', function ( assert ) {
-	const
+	var
 		eventBus = {
 			on: function ( _, handler ) {
 				this.handler = handler;
@@ -56,7 +55,7 @@ QUnit.test( 'emits scroll end event', function ( assert ) {
 } );
 
 QUnit.test( 'doesn\'t emit when disabled', function ( assert ) {
-	const
+	var
 		emitSpy = sandbox.spy( ScrollEndEventEmitter.prototype, 'emit' ),
 		eventBus = {
 			on: function ( _, handler ) {

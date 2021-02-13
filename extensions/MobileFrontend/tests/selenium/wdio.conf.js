@@ -1,9 +1,6 @@
 /**
  * See also: http://webdriver.io/guide/testrunner/configurationfile.html
  */
-
-'use strict';
-
 const fs = require( 'fs' ),
 	saveScreenshot = require( 'wdio-mediawiki' ).saveScreenshot;
 
@@ -15,8 +12,8 @@ exports.config = {
 	// Defaults are for convenience with MediaWiki-Vagrant
 
 	// Wiki admin
-	mwUser: process.env.MEDIAWIKI_USER || 'Admin',
-	mwPwd: process.env.MEDIAWIKI_PASSWORD || 'vagrant',
+	username: process.env.MEDIAWIKI_USER || 'Admin',
+	password: process.env.MEDIAWIKI_PASSWORD || 'vagrant',
 
 	// Base for browser.url() and Page#openTitle()
 	baseUrl: ( process.env.MW_SERVER || 'http://127.0.0.1:8080' ) + (
@@ -37,7 +34,7 @@ exports.config = {
 		// https://sites.google.com/a/chromium.org/chromedriver/capabilities
 		browserName: 'chrome',
 		maxInstances: 1,
-		'goog:chromeOptions': {
+		chromeOptions: {
 			// If DISPLAY is set, assume developer asked non-headless or CI with Xvfb.
 			// Otherwise, use --headless (added in Chrome 59)
 			// https://chromium.googlesource.com/chromium/src/+/59.0.3030.0/headless/README.md
@@ -86,9 +83,10 @@ exports.config = {
 	 * @param {Object} test Mocha Test object
 	 */
 	afterTest: function ( test ) {
-		let filePath;
+		var filePath;
 		if ( !test.passed ) {
 			filePath = saveScreenshot( test.title );
+			// eslint-disable-next-line no-console
 			console.log( '\n\tScreenshot: ' + filePath + '\n' );
 		}
 	}

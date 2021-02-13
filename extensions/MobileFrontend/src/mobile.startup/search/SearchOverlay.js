@@ -10,7 +10,6 @@ var
 
 /**
  * Overlay displaying search results
- *
  * @class SearchOverlay
  * @extends Overlay
  * @uses SearchGateway
@@ -65,7 +64,6 @@ mfExtend( SearchOverlay, Overlay, {
 
 	/**
 	 * Initialize 'search within pages' functionality
-	 *
 	 * @memberof SearchOverlay
 	 * @instance
 	 */
@@ -93,7 +91,6 @@ mfExtend( SearchOverlay, Overlay, {
 
 	/**
 	 * Tapping on background only should hide the overlay
-	 *
 	 * @memberof SearchOverlay
 	 * @instance
 	 */
@@ -104,7 +101,6 @@ mfExtend( SearchOverlay, Overlay, {
 	/**
 	 * Hide the keyboard when scrolling starts (avoid weird situation when
 	 * user taps on an item, the keyboard hides and wrong item is clicked).
-	 *
 	 * @memberof SearchOverlay
 	 * @instance
 	 */
@@ -124,7 +120,6 @@ mfExtend( SearchOverlay, Overlay, {
 			$result = $link.closest( 'li' );
 		/**
 		 * Fired when the user clicks a search result
-		 *
 		 * @event SearchOverlay#search-result-click
 		 * @type {Object}
 		 * @property {jQuery.Object} result The jQuery-wrapped DOM element that
@@ -200,7 +195,6 @@ mfExtend( SearchOverlay, Overlay, {
 	/**
 	 * Trigger a focus() event on search input in order to
 	 * bring up the virtual keyboard.
-	 *
 	 * @memberof SearchOverlay
 	 * @instance
 	 */
@@ -225,7 +219,6 @@ mfExtend( SearchOverlay, Overlay, {
 		this.showKeyboard();
 		/**
 		 * Fired after the search overlay is shown
-		 *
 		 * @event SearchOverlay#search-show
 		 */
 		this.emit( 'search-show' );
@@ -235,7 +228,6 @@ mfExtend( SearchOverlay, Overlay, {
 	 * Perform search and render results inside current view.
 	 * FIXME: Much of the logic for caching and pending queries inside this function should
 	 * actually live in SearchGateway, please move out.
-	 *
 	 * @memberof SearchOverlay
 	 * @instance
 	 * @param {string} query
@@ -259,7 +251,6 @@ mfExtend( SearchOverlay, Overlay, {
 					var xhr;
 					/**
 					 * Fired immediately before the search API request is sent
-					 *
 					 * @event SearchOverlay#search-start
 					 * @property {Object} data related to the current search
 					 */
@@ -295,7 +286,6 @@ mfExtend( SearchOverlay, Overlay, {
 
 							/**
 							 * Fired when search API returns results
-							 *
 							 * @event SearchOverlay#search-results
 							 * @type {Object}
 							 * @property {Object[]} results The results returned by the search

@@ -1,5 +1,4 @@
-let sandbox, icons, spy;
-const
+var sandbox, icons, spy,
 	sinon = require( 'sinon' ),
 	dom = require( '../utils/dom' ),
 	jQuery = require( '../utils/jQuery' ),

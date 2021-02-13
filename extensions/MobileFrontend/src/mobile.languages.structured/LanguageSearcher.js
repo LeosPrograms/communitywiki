@@ -14,8 +14,6 @@ const
  * @param {Object[]} props.languages list of language objects as returned by the API
  * @param {Array|boolean} props.variants language variant objects
  *  or false if no variants exist
- * @param {boolean} props.showSuggestedLanguages If the suggested languages
- *  section should be rendered.
  * @param {string} [props.deviceLanguage] the device's primary language
  */
 function LanguageSearcher( props ) {
@@ -26,7 +24,6 @@ function LanguageSearcher( props ) {
 		props.languages,
 		props.variants,
 		langUtil.getFrequentlyUsedLanguages(),
-		props.showSuggestedLanguages,
 		props.deviceLanguage
 	);
 
@@ -114,7 +111,6 @@ mfExtend( LanguageSearcher, View, {
 	},
 	/**
 	 * Article link click event handler
-	 *
 	 * @memberof LanguageSearcher
 	 * @instance
 	 * @param {jQuery.Event} ev
@@ -123,12 +119,10 @@ mfExtend( LanguageSearcher, View, {
 		const $link = this.$el.find( ev.currentTarget ),
 			lang = $link.attr( 'lang' );
 
-		mw.hook( 'mobileFrontend.languageSearcher.linkClick' ).fire( lang );
 		langUtil.saveLanguageUsageCount( lang, langUtil.getFrequentlyUsedLanguages() );
 	},
 	/**
 	 * Search input handler
-	 *
 	 * @memberof LanguageSearcher
 	 * @instance
 	 * @param {jQuery.Event} ev Event object.
@@ -138,7 +132,6 @@ mfExtend( LanguageSearcher, View, {
 	},
 	/**
 	 * Filter the language list to only show languages that match the current search term.
-	 *
 	 * @memberof LanguageSearcher
 	 * @instance
 	 * @param {string} val of search term (lowercase).

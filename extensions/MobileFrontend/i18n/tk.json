@@ -1,9 +1,4 @@
 {
-	"@metadata": {
-		"authors": [
-			"Hanberke"
-		]
-	},
-	"tag-mobile_edit": "Mobil düzetme",
-	"tag-mobile_web_edit": "Mobil web-düzetme"
+	"@metadata": [],
+	"mobile-frontend-search-submit": "Git"
 }

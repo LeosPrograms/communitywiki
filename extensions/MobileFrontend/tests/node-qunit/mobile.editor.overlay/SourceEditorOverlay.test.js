@@ -1,8 +1,7 @@
-let sandbox, messageStub, getContentStub, previewResolve,
-	BlockMessageDetails,
-	EditorGateway, SourceEditorOverlay;
-const
+var sandbox, messageStub, getContentStub, previewResolve,
 	testUrl = '/w/index.php?title=User:Test',
+	BlockMessageDetails,
+	EditorGateway, SourceEditorOverlay, Drawer,
 	jQuery = require( '../utils/jQuery' ),
 	sinon = require( 'sinon' ),
 	util = require( '../../../src/mobile.startup/util' ),
@@ -25,11 +24,13 @@ QUnit.module( 'MobileFrontend mobile.editor.overlay/SourceEditorOverlay', {
 
 		EditorGateway = require( '../../../src/mobile.editor.overlay/EditorGateway' );
 		SourceEditorOverlay = require( '../../../src/mobile.editor.overlay/SourceEditorOverlay' );
+		Drawer = require( '../../../src/mobile.startup/Drawer' );
 		BlockMessageDetails = require( '../../../src/mobile.editor.overlay/BlockMessageDetails' );
 
 		// prevent event logging requests
 		sandbox.stub( SourceEditorOverlay.prototype, 'log' ).returns( util.Deferred().resolve() );
 		messageStub = sandbox.stub( BlockMessageDetails.prototype, 'initialize' );
+		sandbox.stub( Drawer.prototype, 'toggle' );
 		getContentStub = sandbox.stub( EditorGateway.prototype, 'getContent' );
 		// avoid waiting to load 'moment',
 		// using `expiry: 'infinity'` below ensures we don't need it
@@ -40,6 +41,7 @@ QUnit.module( 'MobileFrontend mobile.editor.overlay/SourceEditorOverlay', {
 		sandbox.stub( window, 'scrollTo' );
 		sandbox.stub( mw.util, 'getUrl' ).returns( '/w/index.php?title=User:Test' );
 		sandbox.stub( mw.config, 'get' )
+			.withArgs( 'wgMFEditorOptions' ).returns( { skipPreview: true } )
 			.withArgs( 'wgFormattedNamespaces' ).returns( { 2: 'User' } )
 			.withArgs( 'wgNamespaceIds' ).returns( { user: 2 } );
 		sandbox.stub( mw.Title, 'makeTitle' ).returns( {
@@ -62,23 +64,15 @@ QUnit.module( 'MobileFrontend mobile.editor.overlay/SourceEditorOverlay', {
 } );
 
 QUnit.test( '#initialize, blocked user', function ( assert ) {
-	const dBlockedContent = util.Deferred().resolve( {
-			text: 'section 0',
-			blockinfo: {
-				blockedby: 'Test',
-				blockexpiry: 'infinity',
-				blockreason: 'Testreason'
-			}
-		} ),
-		done = assert.async();
-
-	sandbox.stub( mw.Api.prototype, 'get' ).returns(
-		util.Deferred().resolve( {
-			parse: {
-				text: 'Testreason'
-			}
-		} )
-	);
+	var dBlockedContent = util.Deferred().resolve( {
+		text: 'section 0',
+		blockinfo: {
+			blockedby: 'Test',
+			blockexpiry: 'infinity',
+			blockreason: 'Testreason'
+		}
+	} );
+	const done = assert.async();
 
 	new SourceEditorOverlay( {
 		title: 'test.css'
@@ -101,9 +95,9 @@ QUnit.test( '#initialize, blocked user', function ( assert ) {
 } );
 
 QUnit.test( '#initialize, with given page and section', function ( assert ) {
-	const editorOverlay = new SourceEditorOverlay( {
+	var editorOverlay = new SourceEditorOverlay( {
 		title: 'test',
-		sectionId: '0'
+		sectionId: 0
 	} );
 
 	// The gateway is initialized with the correct properties,
@@ -111,7 +105,7 @@ QUnit.test( '#initialize, with given page and section', function ( assert ) {
 	assert.strictEqual( editorOverlay.gateway.title, 'test' );
 	assert.strictEqual( editorOverlay.gateway.isNewPage, undefined );
 	assert.strictEqual( editorOverlay.gateway.oldId, undefined );
-	assert.strictEqual( editorOverlay.gateway.sectionId, '0' );
+	assert.strictEqual( editorOverlay.gateway.sectionId, 0 );
 
 	return editorOverlay.getLoadingPromise().then( function () {
 		assert.strictEqual( editorOverlay.$content.val(), 'section 0', 'load correct section' );
@@ -119,7 +113,7 @@ QUnit.test( '#initialize, with given page and section', function ( assert ) {
 } );
 
 QUnit.test( '#initialize, without a section', function ( assert ) {
-	const editorOverlay = new SourceEditorOverlay( {
+	var editorOverlay = new SourceEditorOverlay( {
 		title: 'test.css'
 	} );
 
@@ -132,9 +126,9 @@ QUnit.test( '#initialize, without a section', function ( assert ) {
 } );
 
 QUnit.test( '#preview', function ( assert ) {
-	const editorOverlay = new SourceEditorOverlay( {
+	var editorOverlay = new SourceEditorOverlay( {
 		title: 'test',
-		sectionId: '0'
+		sectionId: 0
 	} );
 
 	editorOverlay.onStageChanges();
@@ -144,8 +138,18 @@ QUnit.test( '#preview', function ( assert ) {
 	} );
 } );
 
+QUnit.test( '#without-preview', function ( assert ) {
+	var editorOverlay = new SourceEditorOverlay( {
+		title: 'test',
+		sectionId: 0
+	} );
+	return getContentStub().then( function () {
+		assert.strictEqual( editorOverlay.$el.find( '.continue' ).text(), 'Save', 'no preview loaded' );
+	} );
+} );
+
 QUnit.test( '#initialize, as anonymous', function ( assert ) {
-	const editorOverlay = new SourceEditorOverlay( {
+	var editorOverlay = new SourceEditorOverlay( {
 		title: 'Main_page',
 		isAnon: true
 	} );

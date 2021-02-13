@@ -1,13 +1,7 @@
 <?php
 
-namespace MobileFrontend\Models;
-
-use File;
-use Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
-use Title;
-use User;
 
 /**
  * Retrieves information specific to a mobile page
@@ -15,17 +9,17 @@ use User;
  * @todo FIXME: Rename this class when its purpose becomes clearer
  */
 class MobilePage {
-	public const SMALL_IMAGE_WIDTH = 150;
-	public const TINY_IMAGE_WIDTH = 80;
+	const SMALL_IMAGE_WIDTH = 150;
+	const TINY_IMAGE_WIDTH = 80;
 
 	/**
 	 * @var Title Title for page
 	 */
 	private $title;
 	/**
-	 * @var RevisionRecord|bool|null
+	 * @var Revision|bool
 	 */
-	private $rev = false;
+	private $rev;
 	/**
 	 * @var string|bool
 	 */
@@ -45,10 +39,10 @@ class MobilePage {
 	}
 
 	/**
-	 * @return RevisionRecord|null
+	 * @return RevisionRecord|bool
 	 */
 	private function getRevision() {
-		if ( $this->rev === false ) {
+		if ( $this->rev === null ) {
 			$this->rev = MediaWikiServices::getInstance()->getRevisionStore()
 				->getRevisionByTitle( $this->title );
 		}
@@ -93,10 +87,9 @@ class MobilePage {
 			$edit['timestamp'] = wfTimestamp( TS_UNIX, $rev->getTimestamp() );
 			$userIdentity = $rev->getUser();
 			if ( $userIdentity ) {
-				$userOptionsLookup = MediaWikiServices::getInstance()->getUserOptionsLookup();
 				$revUser = User::newFromIdentity( $userIdentity );
 				$edit['name'] = $revUser->getName();
-				$edit['gender'] = $userOptionsLookup->getOption( $revUser, 'gender' );
+				$edit['gender'] = $revUser->getOption( 'gender' );
 			}
 		}
 		return $edit;
@@ -126,7 +119,7 @@ class MobilePage {
 	/**
 	 * Check whether a page has a thumbnail associated with it
 	 *
-	 * @return bool whether the page has an image associated with it
+	 * @return Boolean whether the page has an image associated with it
 	 */
 	public function hasThumbnail() {
 		return $this->file ? true : false;
@@ -145,8 +138,8 @@ class MobilePage {
 	/**
 	 * Get the thumbnail container for getMediumThumbnailHtml() and getSmallThumbnailHtml().
 	 *
-	 * @param int $size the width of the thumbnail
-	 * @param bool $useBackgroundImage Whether the thumbnail should have a background image
+	 * @param integer $size the width of the thumbnail
+	 * @param boolean $useBackgroundImage Whether the thumbnail should have a background image
 	 * @return string
 	 */
 	private function getPageImageHtml( $size, $useBackgroundImage = false ) {

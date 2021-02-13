@@ -1,5 +1,3 @@
-'use strict';
-
 const { defineSupportCode } = require( 'cucumber' ),
 	{
 		pageExists,
@@ -16,6 +14,7 @@ const { defineSupportCode } = require( 'cucumber' ),
 	} = require( './history_steps' );
 
 const skip = () => {
+	// eslint-disable-next-line no-console
 	console.warn( 'skipped step' );
 };
 defineSupportCode( function ( { Then, When, Given } ) {

@@ -6,12 +6,10 @@ var EditorOverlayBase = require( './EditorOverlayBase' ),
 	EditorGateway = require( './EditorGateway' ),
 	fakeToolbar = require( '../mobile.init/fakeToolbar' ),
 	mfExtend = require( '../mobile.startup/mfExtend' ),
-	setPreferredEditor = require( './setPreferredEditor' ),
 	VisualEditorOverlay = require( './VisualEditorOverlay' );
 
 /**
  * Overlay that shows an editor
- *
  * @class SourceEditorOverlay
  * @uses Section
  * @uses EditorGateway
@@ -92,7 +90,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 	},
 	/**
 	 * Check whether VisualEditor is enabled or not.
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 * @return {boolean}
@@ -110,7 +107,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 	},
 	/**
 	 * Wikitext Editor input handler
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 */
@@ -202,10 +198,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 
 		this.$preview = this.$el.find( '.preview' );
 		this.$content = this.$el.find( '.wikitext-editor' );
-		// The following classes can be used here:
-		// * mw-editfont-monospace
-		// * mw-editfont-sans-serif
-		// * mw-editfont-serif
 		this.$content.addClass( 'mw-editfont-' + mw.user.options.get( 'editfont' ) );
 		if ( showAnonWarning ) {
 			this.$anonWarning = this.createAnonWarning( options );
@@ -229,28 +221,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 				self.log( { action: 'firstChange' } );
 			} );
 
-		if ( this.isFirefox ) {
-			this.$content.on( 'mousedown', function () {
-				// Support: Firefox Mobile
-				// Firefox scrolls back to the top of the page *every time*
-				// you tap on the textarea. This makes things slightly
-				// more usable by restoring your scroll offset every time
-				// the page scrolls for the next 1000ms.
-				// The page will still flicker every time the user touches
-				// to place the cursor, but this is better than completely
-				// losing your scroll offset. (T214880)
-				var docEl = document.documentElement,
-					scrollTop = docEl.scrollTop;
-				function blockScroll() {
-					docEl.scrollTop = scrollTop;
-				}
-				window.addEventListener( 'scroll', blockScroll );
-				setTimeout( function () {
-					window.removeEventListener( 'scroll', blockScroll );
-				}, 1000 );
-			} );
-		}
-
 		if ( !showAnonWarning ) {
 			this._loadContent();
 		}
@@ -258,7 +228,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 
 	/**
 	 * Handles click on "Edit without login" in anonymous editing warning.
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 * @private
@@ -272,7 +241,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 
 	/**
 	 * Prepares the preview interface and reveals the save screen of the overlay
-	 *
 	 * @inheritdoc
 	 * @memberof SourceEditorOverlay
 	 * @instance
@@ -320,7 +288,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 
 	/**
 	 * Hides the preview and reverts back to initial screen.
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 * @private
@@ -336,12 +303,17 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 
 	/**
 	 * Resize the editor textarea, maintaining scroll position in iOS
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 */
 	_resizeEditor: function () {
 		var scrollTop, container, $scrollContainer;
+
+		// exiting early for firefox due to a bug that causes the page to scroll to top
+		// whenever a caret is inserted T214880
+		if ( this.isFirefox ) {
+			return;
+		}
 
 		if ( !this.$scrollContainer ) {
 			container = OO.ui.Element.static
@@ -369,7 +341,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 
 	/**
 	 * Set content to the user input field.
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 * @param {string} content The content to set.
@@ -383,7 +354,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 
 	/**
 	 * Returns the content of the user input field.
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 * @return {string}
@@ -394,7 +364,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 
 	/**
 	 * Requests content from the API and reveals it in UI.
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 * @private
@@ -420,7 +389,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 	/**
 	 * Loads a {VisualEditorOverlay} and replaces the existing SourceEditorOverlay with it
 	 * based on the current option values.
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 * @private
@@ -439,7 +407,7 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 		} );
 
 		// Save a user setting indicating that this user prefers using the VisualEditor
-		setPreferredEditor( 'VisualEditor' );
+		mw.storage.set( 'preferredEditor', 'VisualEditor' );
 
 		this.$el.addClass( 'switching' );
 		this.$el.find( '.overlay-header-container' ).hide();
@@ -485,7 +453,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 	/**
 	 * Executed when the editor clicks the save/publish button. Handles logging and submitting
 	 * the save action to the editor API.
-	 *
 	 * @inheritdoc
 	 * @memberof SourceEditorOverlay
 	 * @instance
@@ -530,7 +497,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 	/**
 	 * Executed when page save fails. Handles error display and bookkeeping,
 	 * passes logging duties to the parent.
-	 *
 	 * @inheritdoc
 	 * @memberof SourceEditorOverlay
 	 * @instance
@@ -563,7 +529,6 @@ mfExtend( SourceEditorOverlay, EditorOverlayBase, {
 
 	/**
 	 * Checks whether the existing content has changed.
-	 *
 	 * @memberof SourceEditorOverlay
 	 * @instance
 	 * @return {boolean}

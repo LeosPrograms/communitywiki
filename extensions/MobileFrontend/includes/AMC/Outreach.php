@@ -1,21 +1,21 @@
 <?php
 
-namespace MobileFrontend\Amc;
+namespace MobileFrontend\AMC;
 
-use Config;
-use User;
+use \User;
+use \Config;
 
 final class Outreach {
 	/**
 	 * Config name used to enable/disable the AMC Outreach feature
 	 */
-	private const CONFIG_NAME = 'MFAmcOutreach';
+	const CONFIG_NAME = 'MFAmcOutreach';
 
 	/**
-	 * Config name used to set the minimum number of edits a user must make before
+	 * Config name used to set the mininum number of edits a user must make before
 	 * they will be eligible for AMC Outreach
 	 */
-	private const MIN_EDIT_COUNT_CONFIG_NAME = 'MFAmcOutreachMinEditCount';
+	const MIN_EDIT_COUNT_CONFIG_NAME = 'MFAmcOutreachMinEditCount';
 
 	/**
 	 * @var UserMode

@@ -1,5 +1,3 @@
-'use strict';
-
 const assert = require( 'assert' );
 const { iAmOnPage, theTextOfTheFirstHeadingShouldContain } = require( './common_steps' );
 const UserPage = require( '../support/pages/user_page' );
@@ -15,7 +13,7 @@ const iShouldBeOnUserPage = ( username ) => {
 };
 
 const thereShouldBeALinkToCreateMyUserPage = () => {
-	assert.strictEqual( UserPage.user_link_element.isDisplayed(), true );
+	assert.strictEqual( UserPage.user_link_element.isVisible(), true );
 };
 
 module.exports = { iVisitMyUserPage, iShouldBeOnUserPage,

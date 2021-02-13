@@ -14,7 +14,7 @@ var browser = require( './Browser' ).getSingleton(),
  * @prop {boolean} expanded True if section is opened, false if closed.
  * @prop {Page} page
  * @prop {boolean} isReferenceSection
- * @prop {jQuery.Object} $heading
+ * @prop {JQuery.Object} $heading
  */
 
 /**
@@ -41,26 +41,17 @@ function Toggler( options ) {
  * @return {Object} representing open sections
  */
 function getExpandedSections( page ) {
-	var expandedSections = JSON.parse( mw.storage.session.get( 'expandedSections' ) || '{}' );
+	var expandedSections = JSON.parse( mw.storage.get( 'expandedSections' ) || '{}' );
 	expandedSections[page.title] = expandedSections[page.title] || {};
 	return expandedSections;
 }
 
 /**
- * @param {Object} expandedSections
- * Save expandedSections to localStorage
- */
+* @param {Object} expandedSections
+* Save expandedSections to localStorage
+*/
 function saveExpandedSections( expandedSections ) {
-	if ( mw.storage.get( 'expandedSections' ) ) {
-		mw.storage.session.set(
-			'expandedSections', JSON.stringify( mw.storage.get( 'expandedSections' ) )
-		);
-		// Clean up any old storage.
-		// The following line can be removed 1 week after
-		// Ib7c0a45fcf8645a900288a26d172781612fa1606 is deployed
-		mw.storage.remove( 'expandedSections' );
-	}
-	mw.storage.session.set(
+	mw.storage.set(
 		'expandedSections', JSON.stringify( expandedSections )
 	);
 }
@@ -77,7 +68,7 @@ function storeSectionToggleState( $heading, page ) {
 		isSectionOpen = $heading.hasClass( 'open-block' ),
 		expandedSections = getExpandedSections( page );
 
-	if ( headline && expandedSections[page.title] ) {
+	if ( headline ) {
 		if ( isSectionOpen ) {
 			expandedSections[page.title][headline] = ( new Date() ).getTime();
 		} else {
@@ -90,7 +81,6 @@ function storeSectionToggleState( $heading, page ) {
 
 /**
  * Expand sections that were previously expanded before leaving this page.
- *
  * @param {Toggler} toggler
  * @param {jQuery.Object} $container
  * @param {Page} page
@@ -116,7 +106,6 @@ function expandStoredSections( toggler, $container, page ) {
 /**
  * Clean obsolete (saved more than a day ago) expanded sections from
  * localStorage.
- *
  * @param {Page} page
  */
 function cleanObsoleteStoredSections( page ) {
@@ -148,9 +137,7 @@ function cleanObsoleteStoredSections( page ) {
  */
 Toggler.prototype.toggle = function ( $heading, page ) {
 	var indicator,
-		self = this,
 		wasExpanded = $heading.is( '.open-block' ),
-		$headingLabel = $heading.find( '.mw-headline' ),
 		$content = $heading.next();
 
 	$heading.toggleClass( 'open-block' );
@@ -160,29 +147,22 @@ Toggler.prototype.toggle = function ( $heading, page ) {
 	indicator = new Icon( arrowOptions ).prependTo( $heading );
 	$heading.data( 'indicator', indicator );
 
-	$headingLabel.attr( 'aria-expanded', !wasExpanded );
-
-	$content.toggleClass( 'open-block' );
-
-	/* T239418 We consider this event as a low-priority one and emit it asynchronously.
-	This ensures that any logic associated with section toggling is async and not contributing
-	directly to a slow click/press event handler.
-
-	Currently costly reflow-inducing viewport size computation is being done for lazy-loaded
-	images by the main listener to this event. */
-	mw.requestIdleCallback( function () {
-		/**
-		 * Global event emitted after a section has been toggled
-		 *
-		 * @event section-toggled
-		 * @type {ToggledEvent}
-		 */
-
-		self.eventBus.emit( 'section-toggled', {
-			expanded: wasExpanded,
-			isReferenceSection: Boolean( $content.attr( 'data-is-reference-section' ) ),
-			$heading: $heading
+	$content
+		.toggleClass( 'open-block' )
+		.attr( {
+			'aria-pressed': !wasExpanded,
+			'aria-expanded': !wasExpanded
 		} );
+
+	/**
+	 * Global event emitted after a section has been toggled
+	 * @event section-toggled
+	 * @type {ToggledEvent}
+	 */
+	this.eventBus.emit( 'section-toggled', {
+		expanded: wasExpanded,
+		isReferenceSection: Boolean( $content.attr( 'data-is-reference-section' ) ),
+		$heading: $heading
 	} );
 
 	if ( !browser.isWideScreen() ) {
@@ -266,22 +246,26 @@ Toggler.prototype._enable = function ( $container, prefix, page, isClosed ) {
 		// Old default behavior if on cached output
 		collapseSectionsByDefault = true;
 	}
-	expandSections = !collapseSectionsByDefault || mw.storage.session.get( 'expandSections' ) === 'true';
+	expandSections = !collapseSectionsByDefault || mw.storage.get( 'expandSections' ) === 'true';
 
 	$container.children( tagName ).each( function ( i ) {
 		var isReferenceSection,
 			$heading = $container.find( this ),
-			$headingLabel = $heading.find( '.mw-headline' ),
 			$indicator = $heading.find( '.indicator' ),
 			id = prefix + 'collapsible-block-' + i;
-		// Be sure there is a `section` wrapping the section content.
+		// Be sure there is a div wrapping the section content.
 		// Otherwise, collapsible sections for this page is not enabled.
-		if ( $heading.next().is( 'section' ) ) {
-			$content = $heading.next( 'section' );
+		if ( $heading.next().is( 'div' ) ) {
+			$content = $heading.next( 'div' );
 			isReferenceSection = Boolean( $content.attr( 'data-is-reference-section' ) );
 			$heading
 				.addClass( 'collapsible-heading ' )
 				.data( 'section-number', i )
+				.attr( {
+					tabindex: 0,
+					'aria-haspopup': 'true',
+					'aria-controls': id
+				} )
 				.on( 'click', function ( ev ) {
 					// don't toggle, if the click target was a link
 					// (a link in a section heading)
@@ -292,17 +276,9 @@ Toggler.prototype._enable = function ( $container, prefix, page, isClosed ) {
 						self.toggle( $heading, page );
 					}
 				} );
-			$headingLabel
-				.attr( {
-					tabindex: 0,
-					role: 'button',
-					'aria-controls': id,
-					'aria-expanded': 'false'
-				} );
 
 			arrowOptions.rotation = expandSections ? 180 : 0;
 			indicator = new Icon( arrowOptions );
-
 			if ( $indicator.length ) {
 				// replace the existing indicator
 				$indicator.replaceWith( indicator.$el );
@@ -316,8 +292,10 @@ Toggler.prototype._enable = function ( $container, prefix, page, isClosed ) {
 				.attr( {
 					// We need to give each content block a unique id as that's
 					// the only way we can tell screen readers what element we're
-					// referring to via `aria-controls`.
-					id: id
+					// referring to (aria-controls)
+					id: id,
+					'aria-pressed': 'false',
+					'aria-expanded': 'false'
 				} );
 
 			enableKeyboardActions( self, $heading, page );
@@ -343,16 +321,10 @@ Toggler.prototype._enable = function ( $container, prefix, page, isClosed ) {
 	 */
 	function checkHash() {
 		var hash = window.location.hash;
-		var decodedHash;
 		if ( hash.indexOf( '#' ) === 0 ) {
 			// Non-latin characters in the hash will be provided percent-encoded, which
 			// jQuery would later fail to cope with.
-			try {
-				decodedHash = decodeURIComponent( hash );
-				self.reveal( decodedHash, $container, page );
-			} catch ( e ) {
-				// sometimes decoding will fail e.g. T262599, T264914. If that happens ignore.
-			}
+			self.reveal( decodeURIComponent( hash ), $container, page );
 		}
 	}
 

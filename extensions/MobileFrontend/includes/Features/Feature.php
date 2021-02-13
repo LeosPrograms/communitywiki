@@ -7,7 +7,7 @@ namespace MobileFrontend\Features;
  */
 class Feature implements IFeature {
 
-	private const DEFAULT_ENABLED_MODE = false;
+	const DEFAULT_ENABLED_MODE = false;
 	/**
 	 * @var string
 	 */
@@ -23,6 +23,7 @@ class Feature implements IFeature {
 	private $options;
 
 	/**
+	 * Feature constructor.
 	 * @param string $name feature name (used as an ID)
 	 * @param string $group feature group (used as a translation prefix)
 	 * @param array $options Feature options

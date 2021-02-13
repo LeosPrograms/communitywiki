@@ -11,7 +11,7 @@ if ( $IP === false ) {
 	if ( realpath( '../..' ) ) {
 		$IP = realpath( '../..' );
 	} else {
-		$IP = dirname( __DIR__, 3 );
+		$IP = dirname( dirname( dirname( __DIR__ ) ) );
 	}
 }
 

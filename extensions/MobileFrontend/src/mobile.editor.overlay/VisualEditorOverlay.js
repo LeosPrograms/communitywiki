@@ -5,12 +5,10 @@ var EditorOverlayBase = require( './EditorOverlayBase' ),
 	mfExtend = require( '../mobile.startup/mfExtend' ),
 	router = mw.loader.require( 'mediawiki.router' ),
 	identifyLeadParagraph = require( './identifyLeadParagraph' ),
-	setPreferredEditor = require( './setPreferredEditor' ),
 	util = require( '../mobile.startup/util' );
 
 /**
  * Overlay for VisualEditor view
- *
  * @class VisualEditorOverlay
  * @extends EditorOverlayBase
  *
@@ -58,8 +56,7 @@ function VisualEditorOverlay( options ) {
 
 	this.target = ve.init.mw.targetFactory.create( 'article', this, {
 		$element: this.$el,
-		// string or null, but not undefined
-		section: this.options.sectionId || null
+		section: this.options.sectionId
 	} );
 	this.target.once( 'surfaceReady', function () {
 		surfaceReady.resolve();
@@ -104,7 +101,6 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 	editor: 'visualeditor',
 	/**
 	 * Destroy the existing VisualEditor target.
-	 *
 	 * @memberof VisualEditorOverlay
 	 * @instance
 	 */
@@ -126,6 +122,7 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 
 		EditorOverlayBase.prototype.show.apply( this, arguments );
 
+		this.emit( 'editor-loaded' );
 		// log edit attempt
 		this.log( { action: 'ready' } );
 		this.log( { action: 'loaded' } );
@@ -137,20 +134,15 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 			this.$el.append( this.$anonWarning );
 			this.$el.find( '.overlay-content' ).hide();
 		}
-
-		this.emit( 'editor-loaded' );
 	},
 	/**
 	 * Re-do some initialization steps that might have happened while the overlay
 	 * was hidden, but only work correctly after it is shown.
 	 */
 	redoTargetInit: function () {
-		// Note this.target will not be set if an error occurred and/or destroyTarget was called.
-		if ( this.target ) {
-			this.target.adjustContentPadding();
-			this.target.restoreEditSection();
-			this.scrollToLeadParagraph();
-		}
+		this.target.adjustContentPadding();
+		this.target.restoreEditSection();
+		this.scrollToLeadParagraph();
 	},
 	/**
 	 * Scroll so that the lead paragraph in edit mode shows at the same place on the screen
@@ -161,7 +153,7 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 	 * caused by the presence of hatnote templates (both only shown in edit mode).
 	 */
 	scrollToLeadParagraph: function () {
-		var editLead, editLeadView, readLead, offset, initialCursorOffset,
+		var editLead, editLeadView, readLead, offset,
 			currentPageHTMLParser = this.options.currentPageHTMLParser,
 			fakeScroll = this.options.fakeScroll,
 			$window = $( window ),
@@ -169,7 +161,7 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 			surface = this.target.getSurface(),
 			mode = surface.getMode();
 
-		if ( ( section === null || section === '0' ) && mode === 'visual' ) {
+		if ( ( section === null || section === 0 ) && mode === 'visual' ) {
 			editLead = identifyLeadParagraph( surface.getView().$attachedRootNode );
 			if ( currentPageHTMLParser.getLeadSectionElement() ) {
 				readLead = identifyLeadParagraph( currentPageHTMLParser.getLeadSectionElement() );
@@ -177,18 +169,14 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 
 			if ( editLead && readLead ) {
 				offset = $( editLead ).offset().top - ( $( readLead ).offset().top - fakeScroll );
+				$window.scrollTop( $window.scrollTop() + offset );
 				// Set a model range to match
 				editLeadView = $( editLead ).data( 'view' );
 				if ( editLeadView ) {
 					surface.getModel().setLinearSelection(
 						new ve.Range( editLeadView.getModel().getRange().start )
 					);
-					initialCursorOffset =
-						surface.getView().getSelection().getSelectionBoundingRect().top;
-					// Ensure the surface is tall enough to scroll the cursor into view
-					surface.$element.css( 'min-height', $window.height() + initialCursorOffset - surface.padding.top );
 				}
-				$window.scrollTop( offset );
 			}
 		}
 	},
@@ -228,7 +216,6 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 	},
 	/**
 	 * Reveal the editing interface.
-	 *
 	 * @memberof VisualEditorOverlay
 	 * @instance
 	 */
@@ -237,7 +224,6 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 	},
 	/**
 	 * Loads an {SourceEditorOverlay} and replaces the existing {VisualEditorOverlay}
-	 *
 	 * @memberof VisualEditorOverlay
 	 * @instance
 	 * @param {jQuery.Promise} [dataPromise] Optional promise for loading content
@@ -258,7 +244,7 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 		} );
 
 		// Save a user setting indicating that this user prefers using the SourceEditor
-		setPreferredEditor( 'SourceEditor' );
+		mw.storage.set( 'preferredEditor', 'SourceEditor' );
 
 		this.$el.addClass( 'switching' );
 		this.$el.find( '.overlay-header-container' ).hide();

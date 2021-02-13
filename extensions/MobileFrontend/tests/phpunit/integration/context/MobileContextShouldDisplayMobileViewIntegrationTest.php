@@ -21,11 +21,13 @@ class MobileContextShouldDisplayMobileViewIntegrationTest extends MediaWikiTestC
 	 */
 	private $context;
 
-	protected function setUp() : void {
+	protected function setUp() {
 		parent::setUp();
 
 		MobileContext::resetInstanceForTesting();
-		$this->context = MediaWikiServices::getInstance()->getService( 'MobileFrontend.Context' );
+		$this->context = MediaWikiServices::getInstance()->getService(
+			'MobileFrontend.Context'
+		);
 	}
 
 	/**
@@ -38,8 +40,8 @@ class MobileContextShouldDisplayMobileViewIntegrationTest extends MediaWikiTestC
 	}
 
 	/**
-	 * @covers MobileContext::shouldDisplayMobileView
 	 * @dataProvider shouldDisplayMobileViewProvider
+	 * @covers MobileContext::shouldDisplayMobileView
 	 */
 	public function testShouldDisplayMobileView(
 		$expected,
@@ -62,7 +64,7 @@ class MobileContextShouldDisplayMobileViewIntegrationTest extends MediaWikiTestC
 		}
 
 		if ( $format !== null ) {
-			$request->setVal( 'useformat', $format );
+			$this->context->setUseFormat( $format );
 		}
 
 		if ( $formatCookie !== null ) {
@@ -88,7 +90,7 @@ class MobileContextShouldDisplayMobileViewIntegrationTest extends MediaWikiTestC
 			);
 		}
 
-		$this->assertSame( $expected, $this->context->shouldDisplayMobileView() );
+		$this->assertEquals( $expected, $this->context->shouldDisplayMobileView() );
 	}
 
 	public function shouldDisplayMobileViewProvider() {

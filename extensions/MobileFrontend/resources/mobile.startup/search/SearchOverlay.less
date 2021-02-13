@@ -117,8 +117,8 @@
 		}
 
 		.wikidata-description {
-			font-size: 13px;
-			margin-top: 9px;
+			font-size: 0.8em;
+			margin-top: 0.5em;
 		}
 	}
 
@@ -131,15 +131,6 @@
 
 	&.no-results .search-feedback {
 		border-top: 0;
-	}
-
-	&.visible {
-		.animation( fadeIn 0.5s );
-	}
-
-	// see T156509
-	&.overlay-ios {
-		.animation( none );
 	}
 }
 
@@ -180,5 +171,18 @@
 
 	to {
 		opacity: 0;
+	}
+}
+
+.animations {
+	.overlay.search-overlay {
+		&.visible {
+			.animation( fadeIn 0.5s );
+		}
+
+		// see T156509
+		&.overlay-ios {
+			.animation( none );
+		}
 	}
 }

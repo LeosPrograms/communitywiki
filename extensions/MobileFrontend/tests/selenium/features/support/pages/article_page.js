@@ -6,8 +6,6 @@
  * https://en.m.wikipedia.org/wiki/Barack_Obama
  */
 
-'use strict';
-
 const MinervaPage = require( './minerva_page' );
 
 class ArticlePage extends MinervaPage {

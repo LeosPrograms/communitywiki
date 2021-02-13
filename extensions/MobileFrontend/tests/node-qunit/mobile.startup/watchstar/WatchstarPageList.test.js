@@ -1,4 +1,4 @@
-const
+var
 	util = require( '../../../../src/mobile.startup/util' ),
 	dom = require( '../../utils/dom' ),
 	jQuery = require( '../../utils/jQuery' ),
@@ -18,8 +18,7 @@ const
 				watched: false
 			} ]
 		}
-	};
-let
+	},
 	user,
 	Icon,
 	WatchstarPageList,
@@ -37,12 +36,6 @@ QUnit.module( 'MobileFrontend mobile.startup/WatchstarPageList', {
 		oo.setUp( sandbox, global );
 
 		// loaded after globals
-		sandbox.stub( global.mw.loader, 'require' ).withArgs( 'mediawiki.page.watch.ajax' ).returns( {
-			watchstar: () => {}
-		} );
-		sandbox.stub( global.mw.Title, 'newFromText' ).returns(
-			{ getUrl: function () {} }
-		);
 		WatchstarPageList = require( '../../../../src/mobile.startup/watchstar/WatchstarPageList' );
 		user = mw.user;
 		Icon = require( '../../../../src/mobile.startup/Icon' );
@@ -60,7 +53,7 @@ QUnit.module( 'MobileFrontend mobile.startup/WatchstarPageList', {
 } );
 
 QUnit.test( 'Watchlist status check if no ids', function ( assert ) {
-	const
+	var
 		done = assert.async(),
 		mwApi = new mw.Api(),
 		apiSpy = sandbox.stub( mwApi, 'get' ).returns( util.Deferred().resolve( apiResp ) ),
@@ -89,7 +82,7 @@ QUnit.test( 'Watchlist status check if no ids', function ( assert ) {
 } );
 
 QUnit.test( 'Checks watchlist status once', function ( assert ) {
-	const
+	var
 		done = assert.async(),
 		mwApi = new mw.Api(),
 		apiSpy = sandbox.stub( mwApi, 'get' ).returns( util.Deferred().resolve( apiResp ) ),

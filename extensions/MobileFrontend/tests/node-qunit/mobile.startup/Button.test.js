@@ -1,11 +1,10 @@
-const
+var
 	sinon = require( 'sinon' ),
 	dom = require( '../utils/dom' ),
 	jQuery = require( '../utils/jQuery' ),
 	oo = require( '../utils/oo' ),
 	mediaWiki = require( '../utils/mw' ),
-	mustache = require( '../utils/mustache' );
-let
+	mustache = require( '../utils/mustache' ),
 	Button,
 	sandbox;
 
@@ -26,7 +25,7 @@ QUnit.module( 'MobileFrontend Button.js', {
 } );
 
 QUnit.test( 'creates a link if passed href option', function ( assert ) {
-	const
+	var
 		url = 'https://www.foo.com',
 		button = new Button( {
 			href: url
@@ -37,7 +36,7 @@ QUnit.test( 'creates a link if passed href option', function ( assert ) {
 } );
 
 QUnit.test( 'does not add href attribute when not a link', function ( assert ) {
-	const button = new Button( {
+	var button = new Button( {
 		tagName: 'div'
 	} );
 

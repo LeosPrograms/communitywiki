@@ -1,11 +1,9 @@
 <?php
 
 use MediaWiki\MediaWikiServices;
-use MobileFrontend\Api\ApiMobileView;
-use PHPUnit\Framework\MockObject\MockObject;
 
 class MockApiMobileView extends ApiMobileView {
-	/** @var MockObject */
+	/** @var PHPUnit_Framework_MockObject_MockObject */
 	public $mockFile;
 
 	public function __construct( ApiMain $main, $action ) {
@@ -16,11 +14,10 @@ class MockApiMobileView extends ApiMobileView {
 
 	protected function makeTitle( $name ) {
 		$t = Title::newFromText( $name );
-		$row = (object)[
-			'page_id' => 1,
-			'page_title' => $t->getDBkey(),
-			'page_namespace' => $t->getNamespace(),
-		];
+		$row = new stdClass();
+		$row->page_id = 1;
+		$row->page_title = $t->getDBkey();
+		$row->page_namespace = $t->getNamespace();
 
 		return Title::newFromRow( $row );
 	}

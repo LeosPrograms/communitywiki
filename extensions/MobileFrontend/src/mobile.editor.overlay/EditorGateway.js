@@ -3,13 +3,12 @@ var util = require( '../mobile.startup/util' ),
 
 /**
  * API that helps save and retrieve page content
- *
  * @class EditorGateway
  *
  * @param {Object} options Configuration options
  * @param {mw.Api} options.api an Api to use.
  * @param {string} options.title the title to edit
- * @param {string|null} options.sectionId the id of the section to operate edits on.
+ * @param {number} options.sectionId the id of the section to operate edits on.
  * @param {number} [options.oldId] revision to operate on. If absent defaults to latest.
  * @param {boolean} [options.isNewPage] whether the page being created is new
  * @param {boolean} [options.fromModified] whether the page was loaded in a modified state
@@ -29,7 +28,6 @@ EditorGateway.prototype = {
 
 	/**
 	 * Get the block (if there is one) from the result.
-	 *
 	 * @memberof EditorGateway
 	 * @param {Object} pageObj Page object
 	 * @return {Object|null}
@@ -58,7 +56,6 @@ EditorGateway.prototype = {
 	},
 	/**
 	 * Get the content of a page.
-	 *
 	 * @memberof EditorGateway
 	 * @instance
 	 * @return {jQuery.Promise}
@@ -90,7 +87,7 @@ EditorGateway.prototype = {
 				options.rvstartid = this.oldId;
 			}
 			// See Bug 50136 - passing rvsection will fail with non wikitext
-			if ( this.sectionId ) {
+			if ( util.isNumeric( this.sectionId ) ) {
 				options.rvsection = this.sectionId;
 			}
 			return this.api.get( options ).then( function ( resp ) {
@@ -122,7 +119,6 @@ EditorGateway.prototype = {
 	/**
 	 * Mark content as modified and set changes to be submitted when #save
 	 * is invoked.
-	 *
 	 * @memberof EditorGateway
 	 * @instance
 	 * @param {string} content New section content.
@@ -139,7 +135,6 @@ EditorGateway.prototype = {
 	/**
 	 * Mark content as modified and set text that should be prepended to given
 	 * section when #save is invoked.
-	 *
 	 * @memberof EditorGateway
 	 * @instance
 	 * @param {string} text Text to be prepended.
@@ -151,7 +146,6 @@ EditorGateway.prototype = {
 
 	/**
 	 * Save the new content of the section, previously set using #setContent.
-	 *
 	 * @memberof EditorGateway
 	 * @instance
 	 * @param {Object} options Configuration options
@@ -172,7 +166,6 @@ EditorGateway.prototype = {
 
 		/**
 		 * Save content. Make an API request.
-		 *
 		 * @return {jQuery.Deferred}
 		 */
 		function saveContent() {
@@ -196,7 +189,7 @@ EditorGateway.prototype = {
 				apiOptions.prependtext = self.prependtext;
 			}
 
-			if ( self.sectionId ) {
+			if ( util.isNumeric( self.sectionId ) ) {
 				apiOptions.section = self.sectionId;
 			}
 
@@ -218,7 +211,6 @@ EditorGateway.prototype = {
 
 	/**
 	 * Abort any pending previews.
-	 *
 	 * @memberof EditorGateway
 	 * @instance
 	 */
@@ -230,7 +222,6 @@ EditorGateway.prototype = {
 
 	/**
 	 * Get page preview from the API and abort any existing previews.
-	 *
 	 * @memberof EditorGateway
 	 * @instance
 	 * @param {Object} options API query parameters
@@ -261,8 +252,8 @@ EditorGateway.prototype = {
 
 		return this._pending.then( function ( resp ) {
 			if ( resp && resp.parse && resp.parse.text ) {
-				// When editing section 0 or the whole page, there is no section name, so skip
-				if ( self.sectionId && self.sectionId !== '0' &&
+				// section 0 haven't a section name so skip
+				if ( self.sectionId !== 0 &&
 					resp.parse.sections !== undefined &&
 					resp.parse.sections[0] !== undefined
 				) {

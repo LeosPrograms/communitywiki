@@ -38,7 +38,6 @@ mfExtend( Thumbnail, View, {
 	},
 	/**
 	 * Obtain description for thumbnail
-	 *
 	 * @memberof Thumbnail
 	 * @instance
 	 * @return {string}
@@ -48,7 +47,6 @@ mfExtend( Thumbnail, View, {
 	},
 	/**
 	 * Return the page title for the thumbnail
-	 *
 	 * @memberof Thumbnail
 	 * @instance
 	 * @return {string}

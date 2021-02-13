@@ -11,17 +11,20 @@ module.exports = function identifyLeadParagraph( $body ) {
 
 	// Keep in sync with MoveLeadParagraphTransform::isNotEmptyNode()
 	function isNotEmptyNode( node ) {
-		// Ignore VE whitespace characters
-		return !/^[\s↵➞]*$/.test( node.textContent );
+		return /\S/.test( node.textContent );
 	}
 
 	// Keep in sync with MoveLeadParagraphTransform::isNonLeadParagraph()
 	function isNonLeadParagraph( node ) {
-		node = node.cloneNode( true );
-		// Ignore non-content nodes, TemplateStyles and coordinates
-		$( node ).find( '.ve-ce-branchNode-inlineSlug, .ve-ce-focusableNode-invisible, style, span#coordinates' ).remove();
+		var $coords;
 		if ( isNotEmptyNode( node ) ) {
-			return false;
+			$coords = $( node ).find( 'span#coordinates' );
+			if ( !$coords.length ) {
+				return false;
+			}
+			if ( node.textContent ) {
+				return node.textContent === $coords[ 0 ].textContent;
+			}
 		}
 		return true;
 	}

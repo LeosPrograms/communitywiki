@@ -2,8 +2,8 @@
 
 namespace MobileFrontend\Features;
 
-use ArrayIterator;
 use IteratorAggregate;
+use ArrayIterator;
 
 /**
  * User Modes collection

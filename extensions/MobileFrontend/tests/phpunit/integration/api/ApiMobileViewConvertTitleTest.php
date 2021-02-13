@@ -1,26 +1,24 @@
 <?php
 
 /**
- * @group Database
- * @group MobileFrontend
- * @group medium
- */
+* @group Database
+* @group MobileFrontend
+* @group medium
+*/
 class ApiMobileViewConvertTitleTest extends ApiTestCase {
 
-	/** @var string */
 	private $simplifiedTitle = '天闻角川';
-	/** @var string */
 	private $traditionalTitle = '天聞角川';
 
-	protected function setUp() : void {
+	protected function setUp() {
 		parent::setUp();
 		$this->setUserLang( 'zh' );
-		$this->setMwGlobals( 'wgLanguageCode', 'zh' );
+		$this->setContentLang( 'zh' );
 		$this->editPage( $this->simplifiedTitle, 'foo',  'test page' );
 	}
 
 	/**
-	 * @covers \MobileFrontend\Api\ApiMobileView::execute
+	 * @covers ApiMobileView::execute
 	 */
 	public function testRequestConverted() {
 		$result = $this->doApiRequest( [
@@ -39,7 +37,7 @@ class ApiMobileViewConvertTitleTest extends ApiTestCase {
 	}
 
 	/**
-	 * @covers \MobileFrontend\Api\ApiMobileView::execute
+	 * @covers ApiMobileView::execute
 	 */
 	public function testRequestNotConverted() {
 		$result = $this->doApiRequest( [

@@ -1,32 +1,14 @@
 <?php
 
-use MediaWiki\Languages\LanguageConverterFactory;
-use MediaWiki\Languages\LanguageNameUtils;
-
 /**
  * Provides a list of languages available for a page
  */
 class SpecialMobileLanguages extends MobileSpecialPage {
-	/** @var Title Saves the title object to get languages for */
+	/** @var Title $title Saves the title object to get languages for */
 	private $title;
 
-	/** @var ILanguageConverter */
-	private $languageConverter;
-
-	/** @var LanguageNameUtils */
-	private $languageNameUtils;
-
-	/**
-	 * @param LanguageConverterFactory $languageConverterFactory
-	 * @param LanguageNameUtils $languageNameUtils
-	 */
-	public function __construct(
-		LanguageConverterFactory $languageConverterFactory,
-		LanguageNameUtils $languageNameUtils
-	) {
+	public function __construct() {
 		parent::__construct( 'MobileLanguages' );
-		$this->languageConverter = $languageConverterFactory->getLanguageConverter( $this->getContentLanguage() );
-		$this->languageNameUtils = $languageNameUtils;
 	}
 
 	/**
@@ -68,7 +50,7 @@ class SpecialMobileLanguages extends MobileSpecialPage {
 
 		if ( isset( $page['langlinks'] ) ) {
 			// Set the name of each language based on the system list of language names
-			$languageMap = $this->languageNameUtils->getLanguageNames();
+			$languageMap = Language::fetchLanguageNames();
 			$languages = $page['langlinks'];
 			foreach ( $page['langlinks'] as $index => $langObject ) {
 				if ( !$this->isLanguageObjectValid( $languageMap, $langObject ) ) {
@@ -125,11 +107,11 @@ class SpecialMobileLanguages extends MobileSpecialPage {
 	 */
 	private function getLanguageVariants() {
 		$pageLang = $this->title->getPageLanguage();
-		if ( $this->languageConverter->hasVariants() ) {
+		$variants = $pageLang->getVariants();
+		if ( count( $variants ) > 1 ) {
 			$pageLangCode = $pageLang->getCode();
 			$output = [];
 			// Loops over each variant
-			$variants = $this->languageConverter->getVariants();
 			foreach ( $variants as $code ) {
 				// Gets variant name from language code
 				$varname = $pageLang->getVariantname( $code );
@@ -144,10 +126,10 @@ class SpecialMobileLanguages extends MobileSpecialPage {
 				}
 			}
 			return $output;
+		} else {
+			// No variants
+			return [];
 		}
-
-		// No variants
-		return [];
 	}
 
 	/**

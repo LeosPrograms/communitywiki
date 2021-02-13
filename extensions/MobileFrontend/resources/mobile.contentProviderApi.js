@@ -4,6 +4,6 @@
 // already have a query string
 
 // eslint-disable-next-line no-undef
-$( document ).on( 'ajaxSend', function ( _event, _jqxhr, settings ) {
+$( document ).ajaxSend( function ( _event, _jqxhr, settings ) {
 	settings.url += '&origin=*';
 } );

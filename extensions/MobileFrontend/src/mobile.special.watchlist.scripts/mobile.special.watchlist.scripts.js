@@ -9,7 +9,7 @@ var WatchList = require( './WatchList' ),
  * Initialises JavaScript on Special:Watchlist
  */
 function init() {
-	var $watchlist = $( 'ul.mw-mf-watchlist-page-list' );
+	var $watchlist = $( 'ul.page-list' );
 
 	// FIXME: find more elegant way to not show watchlist stars on recent changes
 	if ( $( '.mw-mf-watchlist-selector' ).length === 0 ) {
@@ -23,12 +23,12 @@ function init() {
 		} );
 	}
 	// not needed now we have JS view which has infinite scrolling
-	$watchlist.find( '.mw-mf-watchlist-more' ).remove();
+	$( '.more' ).remove();
 }
 
 $( function () {
 	var api = new mw.Api(),
-		view = $( '.mw-mf-watchlist-button-bar .is-on a' ).data( 'view' ),
+		view = $( '.button-bar .is-on a' ).data( 'view' ),
 		filter = $( '.mw-mf-watchlist-selector .selected a' ).data( 'filter' );
 
 	init();

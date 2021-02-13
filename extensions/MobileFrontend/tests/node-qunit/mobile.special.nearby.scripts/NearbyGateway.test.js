@@ -1,8 +1,7 @@
-let
+var
 	sandbox,
 	NearbyGateway,
-	util;
-const
+	util,
 	jQuery = require( '../utils/jQuery' ),
 	dom = require( '../utils/dom' ),
 	mediaWiki = require( '../utils/mw' ),
@@ -11,6 +10,8 @@ const
 
 QUnit.module( 'MobileFrontend NearbyGateway.js', {
 	beforeEach: function () {
+		var api;
+
 		sandbox = sinon.sandbox.create();
 		dom.setUp( sandbox, global );
 		jQuery.setUp( sandbox, global );
@@ -32,7 +33,7 @@ QUnit.module( 'MobileFrontend NearbyGateway.js', {
 		util = require( '../../../src/mobile.startup/util' );
 		NearbyGateway = require( '../../../src/mobile.special.nearby.scripts/NearbyGateway' );
 
-		const api = {
+		api = {
 			ajax: function () {}
 		};
 
@@ -109,7 +110,7 @@ QUnit.module( 'MobileFrontend NearbyGateway.js', {
 } );
 
 QUnit.test( '_distanceMessage()', function ( assert ) {
-	const
+	var
 		self = this,
 		msgKm = 'mobile-frontend-nearby-distance',
 		msgM = 'mobile-frontend-nearby-distance-meters',

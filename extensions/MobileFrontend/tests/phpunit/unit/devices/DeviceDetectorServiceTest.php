@@ -2,17 +2,17 @@
 
 namespace Tests\MobileFrontend\Devices;
 
-use FauxRequest;
 use MobileFrontend\Devices\DeviceDetector;
-use MobileFrontend\Devices\DeviceDetectorService;
-use MobileFrontend\Devices\DeviceProperties;
 use WebRequest;
+use FauxRequest;
+use MobileFrontend\Devices\DeviceProperties;
+use MobileFrontend\Devices\DeviceDetectorService;
 
 /**
  * @group MobileFrontend
  */
 class DeviceDetectorServiceTest extends \MediaWikiUnitTestCase {
-	protected function setUp() : void {
+	protected function setUp() {
 		parent::setUp();
 
 		$this->request = new FauxRequest();
@@ -74,7 +74,7 @@ class DeviceDetectorServiceTest extends \MediaWikiUnitTestCase {
 
 		$properties = $detector->detectDeviceProperties( $this->request, [] );
 
-		$this->assertNull( $properties );
+		$this->assertEquals( null, $properties );
 	}
 }
 

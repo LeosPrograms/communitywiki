@@ -1,7 +1,7 @@
 import { storiesOf } from '@storybook/html';
-import amcOutreachDrawer from '../../src/mobile.startup/amcOutreach/amcOutreachDrawer';
+import amcOutreachDrawer from '../../src/mobile.amcOutreachDrawer/amcOutreachDrawer';
 import { action } from '@storybook/addon-actions';
-import '../../resources/mobile.startup/amcOutreach/amcOutreachDrawer.less';
+import '../../resources/mobile.amcOutreachDrawer/amcOutreachDrawer.less';
 
 storiesOf( 'amc' )
 	.add( 'outreachDrawer',
@@ -16,14 +16,13 @@ storiesOf( 'amc' )
 				},
 				mw.message,
 				mw.util,
+				{},
 				// toast
 				{
 					showOnPageReload: action( 'showOnPageReload' ),
 					show: action( 'show' )
 				},
-				'csrfToken',
-				action( 'onBeforeHide' ),
-				'title'
+				'blah'
 			);
 			drawer.show();
 			return drawer.$el[0];
