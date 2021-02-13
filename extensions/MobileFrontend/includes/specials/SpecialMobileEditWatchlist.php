@@ -1,6 +1,8 @@
 <?php
 
 use MediaWiki\MediaWikiServices;
+use MobileFrontend\Models\MobileCollection;
+use MobileFrontend\Models\MobilePage;
 
 /**
  * The mobile version of the watchlist editing page.
@@ -86,9 +88,8 @@ class SpecialMobileEditWatchlist extends SpecialEditWatchlist {
 	/**
 	 * The main entry point for the page.
 	 *
-	 * @param int $mode Whether the user is viewing, editing, or clearing their
+	 * @param string|null $mode Whether the user is viewing, editing, or clearing their
 	 *  watchlist
-	 * @suppress PhanParamSignatureMismatch It is identical
 	 */
 	public function execute( $mode ) {
 		// Anons don't get a watchlist edit

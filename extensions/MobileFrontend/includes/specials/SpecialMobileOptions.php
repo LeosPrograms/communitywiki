@@ -17,7 +17,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 
 	/**
 	 * Advanced Mobile Contributions mode
-	 * @var \MobileFrontend\AMC\Manager
+	 * @var \MobileFrontend\Amc\Manager
 	 */
 	private $amc;
 
@@ -45,6 +45,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 	 */
 	public function setJsConfigVars() {
 		$this->getOutput()->addJsConfigVars( [
+			'wgMFCollapseSectionsByDefault' => $this->getConfig()->get( 'MFCollapseSectionsByDefault' ),
 			'wgMFEnableFontChanger' => $this->featureManager->isFeatureAvailableForCurrentUser(
 				'MFEnableFontChanger'
 			),
@@ -62,7 +63,6 @@ class SpecialMobileOptions extends MobileSpecialPage {
 		$this->setJsConfigVars();
 
 		$this->mobileContext->setForceMobileView( true );
-		$this->mobileContext->setContentTransformations( false );
 
 		if ( $this->getRequest()->wasPosted() ) {
 			$this->submitSettingsForm();
@@ -72,7 +72,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 	}
 
 	private function buildAMCToggle() {
-		/** @var \MobileFrontend\AMC\UserMode $userMode */
+		/** @var \MobileFrontend\Amc\UserMode $userMode */
 			$userMode = $this->services->getService( 'MobileFrontend.AMC.UserMode' );
 			$amcToggle = new OOUI\CheckboxInputWidget( [
 				'name' => 'enableAMC',
@@ -232,7 +232,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 			'type' => 'submit',
 		] );
 
-		if ( $user->isLoggedIn() ) {
+		if ( $user->isRegistered() ) {
 			$fields[] = new OOUI\HiddenInputWidget( [ 'name' => 'token',
 				'value' => $user->getEditToken() ] );
 		}
@@ -305,7 +305,7 @@ class SpecialMobileOptions extends MobileSpecialPage {
 		$user = $this->getUser();
 		$output = $this->getOutput();
 
-		if ( $user->isLoggedIn() && !$user->matchEditToken( $request->getVal( 'token' ) ) ) {
+		if ( $user->isRegistered() && !$user->matchEditToken( $request->getVal( 'token' ) ) ) {
 			$errorText = __METHOD__ . '(): token mismatch';
 			wfDebugLog( 'mobile', $errorText );
 			$output->addHTML( '<div class="errorbox">'

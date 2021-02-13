@@ -1,7 +1,13 @@
 <?php
 
+namespace MobileFrontend\Models;
+
+use File;
+use Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
+use Title;
+use User;
 
 /**
  * Retrieves information specific to a mobile page
@@ -9,8 +15,8 @@ use MediaWiki\Revision\RevisionRecord;
  * @todo FIXME: Rename this class when its purpose becomes clearer
  */
 class MobilePage {
-	const SMALL_IMAGE_WIDTH = 150;
-	const TINY_IMAGE_WIDTH = 80;
+	public const SMALL_IMAGE_WIDTH = 150;
+	public const TINY_IMAGE_WIDTH = 80;
 
 	/**
 	 * @var Title Title for page

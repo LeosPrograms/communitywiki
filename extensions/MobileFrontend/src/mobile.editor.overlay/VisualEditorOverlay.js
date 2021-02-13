@@ -5,6 +5,7 @@ var EditorOverlayBase = require( './EditorOverlayBase' ),
 	mfExtend = require( '../mobile.startup/mfExtend' ),
 	router = mw.loader.require( 'mediawiki.router' ),
 	identifyLeadParagraph = require( './identifyLeadParagraph' ),
+	setPreferredEditor = require( './setPreferredEditor' ),
 	util = require( '../mobile.startup/util' );
 
 /**
@@ -125,7 +126,6 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 
 		EditorOverlayBase.prototype.show.apply( this, arguments );
 
-		this.emit( 'editor-loaded' );
 		// log edit attempt
 		this.log( { action: 'ready' } );
 		this.log( { action: 'loaded' } );
@@ -137,15 +137,20 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 			this.$el.append( this.$anonWarning );
 			this.$el.find( '.overlay-content' ).hide();
 		}
+
+		this.emit( 'editor-loaded' );
 	},
 	/**
 	 * Re-do some initialization steps that might have happened while the overlay
 	 * was hidden, but only work correctly after it is shown.
 	 */
 	redoTargetInit: function () {
-		this.target.adjustContentPadding();
-		this.target.restoreEditSection();
-		this.scrollToLeadParagraph();
+		// Note this.target will not be set if an error occurred and/or destroyTarget was called.
+		if ( this.target ) {
+			this.target.adjustContentPadding();
+			this.target.restoreEditSection();
+			this.scrollToLeadParagraph();
+		}
 	},
 	/**
 	 * Scroll so that the lead paragraph in edit mode shows at the same place on the screen
@@ -253,7 +258,7 @@ mfExtend( VisualEditorOverlay, EditorOverlayBase, {
 		} );
 
 		// Save a user setting indicating that this user prefers using the SourceEditor
-		mw.storage.set( 'preferredEditor', 'SourceEditor' );
+		setPreferredEditor( 'SourceEditor' );
 
 		this.$el.addClass( 'switching' );
 		this.$el.find( '.overlay-header-container' ).hide();

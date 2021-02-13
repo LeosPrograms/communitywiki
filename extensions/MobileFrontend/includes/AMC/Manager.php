@@ -1,6 +1,6 @@
 <?php
 
-namespace MobileFrontend\AMC;
+namespace MobileFrontend\Amc;
 
 use Config;
 use MobileContext;
@@ -8,24 +8,24 @@ use MobileContext;
 /**
  * Advanced Mobile Contributions Manager
  *
- * @package MobileFrontend\AMC
+ * @package MobileFrontend\Amc
  */
 final class Manager {
 	/**
 	 * A config name used to enable/disable the AMC mode
 	 */
-	const AMC_MODE_CONFIG_NAME = 'MFAdvancedMobileContributions';
+	private const AMC_MODE_CONFIG_NAME = 'MFAdvancedMobileContributions';
 
 	/**
 	 * Mode identifier used in feature configs
 	 */
-	const AMC_MODE_IDENTIFIER = 'amc';
+	private const AMC_MODE_IDENTIFIER = 'amc';
 
 	/**
 	 * Change tag
 	 * All edits when has AMC enabled will be tagged with AMC_EDIT_TAG
 	 */
-	const AMC_EDIT_TAG = 'advanced mobile edit';
+	public const AMC_EDIT_TAG = 'advanced mobile edit';
 
 	/**
 	 * MobileContext used to retrieve shouldDisplayMobileView and user information
